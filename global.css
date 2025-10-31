@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light Theme — Calm and clean */
+    --background: 0 0% 99%; /* #F9FAFB */
+    --foreground: 240 10% 4%; /* #1E1E2D */
+    --card: 0 0% 100%; /* white cards */
+    --card-foreground: 240 10% 4%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 4%;
+    --primary: 256 94% 76%; /* #A78BFA lavender */
+    --primary-foreground: 0 0% 98%; /* almost white text */
+    --secondary: 240 11% 96%; /* #F3F4F6 light gray */
+    --secondary-foreground: 240 5% 26%; /* muted gray text */
+    --muted: 240 11% 96%;
+    --muted-foreground: 240 5% 45%;
+    --accent: 234 85% 68%; /* #6366F1 indigo accent */
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 85% 60%; /* #EF4444 red */
+    --border: 240 10% 90%; /* #E5E7EB */
+    --input: 240 10% 90%;
+    --ring: 252 94% 76%; /* lavender ring */
+    --radius: 0.625rem;
+
+    /* Charts & Tags */
+    --chart-1: 0 84% 63%;   /* Coral red #F87171 */
+    --chart-2: 152 63% 51%; /* Green #34D399 */
+    --chart-3: 217 91% 60%; /* Blue #60A5FA */
+    --chart-4: 45 97% 61%;  /* Amber #FBBF24 */
+    --chart-5: 330 79% 72%; /* Pink #F472B6 */
+  }
+
+  .dark:root {
+    /* Dark Theme — Default for Hability */
+    --background: #101022; /* #1E1E2D */
+    --foreground: 0 0% 98%;
+    --card: 234 20% 19%; /* #2A2B3C */
+    --card-foreground: 0 0% 98%;
+    --popover: 234 20% 19%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 256 94% 76%; /* Lavender #A78BFA */
+    --primary-foreground: 240 5% 10%;
+    --secondary: 235 14% 22%; /* #32344A */
+    --secondary-foreground: 0 0% 98%;
+    --muted: 233 15% 24%; /* #3B3E54 */
+    --muted-foreground: 240 6% 70%; /* #9CA3AF */
+    --accent: 234 85% 68%; /* Indigo #6366F1 */
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 85% 63%; /* Red #EF4444 */
+    --border: 231 9% 32%; /* #44475A */
+    --input: 231 9% 32%;
+    --ring: 256 94% 76%; /* #A78BFA */
+    --radius: 0.625rem;
+
+    /* Charts & Tags */
+    --chart-1: 0 84% 63%;   /* Coral red #F87171 */
+    --chart-2: 152 63% 51%; /* Green #34D399 */
+    --chart-3: 217 91% 60%; /* Blue #60A5FA */
+    --chart-4: 45 97% 61%;  /* Amber #FBBF24 */
+    --chart-5: 330 79% 72%; /* Pink #F472B6 */
+  }
+}

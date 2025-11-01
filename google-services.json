@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "681908254289",
+    "project_id": "habit-bloom-e9d6f",
+    "storage_bucket": "habit-bloom-e9d6f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:681908254289:android:833a2da85e086d4ef5ea70",
+        "android_client_info": {
+          "package_name": "com.habitbloom.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBjsB74yikew6Ot80LtSVWB7lDqvIfasuQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

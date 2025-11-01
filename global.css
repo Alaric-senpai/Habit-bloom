@@ -35,7 +35,7 @@
 
   .dark:root {
     /* Dark Theme — Default for Hability */
-    --background: #101022; /* #1E1E2D */
+    --background: #050522; /* #1E1E2D */
     --foreground: 0 0% 98%;
     --card: 234 20% 19%; /* #2A2B3C */
     --card-foreground: 0 0% 98%;

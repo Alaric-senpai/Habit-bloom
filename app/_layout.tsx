@@ -27,7 +27,7 @@ export default function RootLayout() {
       if(colorScheme == 'dark'){
         setColorScheme('light')
       }
-  },[])
+  },[colorScheme])
 
   useEffect(()=>{
     const RunMigrations = async()=>{

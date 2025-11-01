@@ -28,7 +28,9 @@
       "permissions": [
         "android.permission.READ_CALENDAR",
         "android.permission.WRITE_CALENDAR"
-      ]
+      ],
+      "package": "com.habitbloom.app",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
@@ -44,7 +46,8 @@
           "calendarPermission": "The app needs to access your calendar.",
           "remindersPermission": "Allow habitbloom to access your reminders"
         }
-      ]
+      ],
+      "expo-notifications"
     ],
     "experiments": {
       "typedRoutes": true

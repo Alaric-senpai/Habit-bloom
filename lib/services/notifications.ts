@@ -1,6 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
-
+import * as Device from 'expo-device'
+import * as constants from 'expo-constants'
 // Configure notification behavior when app is in foreground
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -17,6 +18,7 @@ export class NotificationService {
   private notificationResponseListener?: Notifications.Subscription;
 
   constructor() {
+
     // Set up default notification channel for Android
     if (Platform.OS === 'android') {
       this.setupAndroidNotificationChannel();
@@ -70,9 +72,11 @@ export class NotificationService {
       // Only get push token if permissions are granted
       let token: string | undefined;
       try {
+        const projectId = constants.default?.expoConfig?.extra?.eas?.projectId
         const pushToken = await Notifications.getExpoPushTokenAsync({
-          projectId: "5aef5676-cf23-432d-bdc8-ca317d7ddfaa", // Add your project ID
+          projectId
         });
+        console.log("Notification token", pushToken.data)
         token = pushToken.data;
       } catch (error) {
         console.error('Error getting push token:', error);

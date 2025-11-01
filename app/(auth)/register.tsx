@@ -69,6 +69,7 @@ export default function RegisterScreen() {
         <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       className="flex-1 p-4 mt-2"
+      
     >
     <ScrollableContainer>
         {/* Logo */}
@@ -82,7 +83,7 @@ export default function RegisterScreen() {
         {/* Name Input */}
         <View className="mb-4">
           <Text className="text-gray-700 dark:text-white text-md my-3 font-semibold">Full Name</Text>
-          <View className="flex-row items-center rounded-2xl oveflow-hidden bg-gray-600 dark:bg-slate-900 p-2 px-4 overflow-hidden">
+          <View className="flex-row items-center rounded-2xl oveflow-hidden bg-gray-200 dark:bg-slate-900 p-2 px-4 overflow-hidden">
             <Ionicons name="person-outline" size={20} color="#9CA3AF" />
             <TextInput
               placeholder="Enter your name"
@@ -97,7 +98,7 @@ export default function RegisterScreen() {
         {/* Email Input */}
         <View className="mb-4">
           <Text className="text-gray-700 dark:text-white text-md my-3 font-semibold">Email</Text>
-          <View className="flex-row items-center rounded-2xl oveflow-hidden bg-gray-600 dark:bg-slate-900 p-2 px-4 overflow-hidden">
+          <View className="flex-row items-center rounded-2xl oveflow-hidden bg-gray-200 dark:bg-slate-900 p-2 px-4 overflow-hidden">
             <Ionicons name="mail-outline" size={20} color="#9CA3AF" />
             <TextInput
               placeholder="Enter your email"
@@ -114,7 +115,7 @@ export default function RegisterScreen() {
         {/* Password Input */}
         <View className="mb-4">
           <Text className="text-gray-700 dark:text-white text-md my-3 font-semibold">Password</Text>
-          <View className="flex-row items-center rounded-2xl oveflow-hidden bg-gray-600 dark:bg-slate-900 p-2 px-4 overflow-hidden">
+          <View className="flex-row items-center rounded-2xl oveflow-hidden bg-gray-200 dark:bg-slate-900 p-2 px-4 overflow-hidden">
             <Ionicons name="lock-closed-outline" size={20} color="#9CA3AF" />
             <TextInput
               placeholder="Create a password"
@@ -139,7 +140,7 @@ export default function RegisterScreen() {
           <Text className="text-gray-700 dark:text-white text-md my-3 font-semibold">
             Confirm Password
           </Text>
-          <View className="flex-row items-center rounded-2xl oveflow-hidden bg-gray-600 dark:bg-slate-900 p-2 px-4 overflow-hidden">
+          <View className="flex-row items-center rounded-2xl oveflow-hidden bg-gray-200 dark:bg-slate-900 p-2 px-4 overflow-hidden">
             <Ionicons name="lock-closed-outline" size={20} color="#9CA3AF" />
             <TextInput
               placeholder="Confirm your password"

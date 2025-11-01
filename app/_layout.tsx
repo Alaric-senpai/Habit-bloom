@@ -7,16 +7,53 @@ import { PortalHost } from '@rn-primitives/portal';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'nativewind';
-
+import { useEffect } from 'react';
+import { Platform } from 'react-native';
+import * as NavigationBar from 'expo-navigation-bar'
+import { initializeDatabase } from '@/database/db';
+import chalk from 'chalk'
+import { log } from '@/lib/utils';
 export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary,
 } from 'expo-router';
 
 export default function RootLayout() {
-  const { colorScheme } = useColorScheme();
+  const { colorScheme, setColorScheme } = useColorScheme();
   
   console.log(colorScheme)
+
+  useEffect(()=>{
+      if(colorScheme == 'dark'){
+        setColorScheme('light')
+      }
+  },[])
+
+  useEffect(()=>{
+    const RunMigrations = async()=>{
+        try {
+          await initializeDatabase()
+          log(chalk.green("Database Migrated successfully"))
+        } catch (error) {
+          log(chalk.red("Error when inintializing databse"))
+        }
+    };
+
+    RunMigrations()
+  },[])
+
+    useEffect(() => {
+    const hideSystemNavigation = async () => {
+      if (Platform.OS === 'android') {
+        await NavigationBar.setPositionAsync('absolute');
+        await NavigationBar.setBackgroundColorAsync('transparent');
+        await NavigationBar.setVisibilityAsync('hidden');
+      }
+    };
+    
+    hideSystemNavigation();
+  }, []);
+
 
   return (
     <ThemeProvider value={NAV_THEME[ colorScheme ?? 'light']}>

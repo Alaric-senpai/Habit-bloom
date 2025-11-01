@@ -6,7 +6,7 @@ export default function ScrollableContainer({children}: {children:React.ReactNod
   return (
     <Container>
         <ScrollView className='flex-1 '
-            showsHorizontalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
             keyboardDismissMode={'interactive'}
             keyboardShouldPersistTaps={'handled'}
         >

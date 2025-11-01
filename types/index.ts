@@ -38,12 +38,19 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Password is required").trim(),
 });
 
+
 export const registerSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters").trim(),
-  email: z.email("Invalid email address").trim().toLowerCase(),
-  password: z.string().min(6, "Password must be at least 6 characters").trim(),
-  timezone: z.string().optional().default("UTC"),
+  name: z.string().min(1, "Name is required"),
+  email: z.email("Invalid email"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  confirmPassword: z.string().min(6, "Confirm password is required"),
+  timezone: z.string().default("Africa/Nairobi").optional(), // ✅ Required with default
+}).refine(data => data.password === data.confirmPassword, {
+  path: ['confirmPassword'],
+  message: 'Passwords do not match',
 });
+
+
 
 export const updateUserSchema = userSchema.partial().omit({ 
   id: true, 

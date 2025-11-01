@@ -40,8 +40,7 @@ const onboardingData = [
     image: Logo,
   },
 ];
-
-export default function OnboardingScreen() {
+ function OnboardingScreen() {
   const pagerRef = useRef<PagerView | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const router = useRouter();
@@ -138,3 +137,5 @@ export default function OnboardingScreen() {
     </Container>
   );
 }
+
+export default OnboardingScreen;

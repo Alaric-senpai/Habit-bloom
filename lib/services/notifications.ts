@@ -1,9 +1,11 @@
 import * as Notifications from 'expo-notifications';
+import * as Linking from 'expo-linking';
 import { Platform } from 'react-native';
-import * as Device from 'expo-device'
-import * as constants from 'expo-constants'
-import { log } from '../utils';
-import { NotificationSchemaType } from '@/types';
+import * as Device from 'expo-device';
+import * as constants from 'expo-constants';
+import { router } from 'expo-router';
+import { NotificationActions } from '@/database/actions';
+
 // Configure notification behavior when app is in foreground
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -14,17 +16,28 @@ Notifications.setNotificationHandler({
   }),
 });
 
+interface NotificationData {
+  notificationId?: number;
+  userId?: number;
+  habitId?: number;
+  type?: 'reminder' | 'achievement' | 'system' | 'streak' | 'custom';
+  screen?: string;
+  params?: Record<string, any>;
+}
 
 export class NotificationService {
   private notificationReceivedListener?: Notifications.Subscription;
   private notificationResponseListener?: Notifications.Subscription;
+  private notificationActions?: NotificationActions;
 
   constructor() {
-
     // Set up default notification channel for Android
     if (Platform.OS === 'android') {
       this.setupAndroidNotificationChannel();
     }
+
+    // Initialize notification actions
+    this.notificationActions = new NotificationActions();
   }
 
   private async setupAndroidNotificationChannel(): Promise<void> {
@@ -74,11 +87,11 @@ export class NotificationService {
       // Only get push token if permissions are granted
       let token: string | undefined;
       try {
-        const projectId = constants.default?.expoConfig?.extra?.eas?.projectId
+        const projectId = constants.default?.expoConfig?.extra?.eas?.projectId;
         const pushToken = await Notifications.getExpoPushTokenAsync({
-          projectId
+          projectId,
         });
-        console.log("Notification token", pushToken.data)
+        console.log('Notification token', pushToken.data);
         token = pushToken.data;
       } catch (error) {
         console.error('Error getting push token:', error);
@@ -114,7 +127,7 @@ export class NotificationService {
   }: {
     title: string;
     body?: string;
-    date: Date | Notifications.NotificationTriggerInput;
+    date: Date | Notifications.NotificationTriggerInput | null;
     identifier?: string;
     data?: Record<string, any>;
     channelId?: string;
@@ -122,15 +135,18 @@ export class NotificationService {
     try {
       const hasPermission = await this.checkPermissions();
       if (!hasPermission) {
-        log('Notification permissions not granted', 'warn');
+        console.warn('Notification permissions not granted');
         return null;
       }
 
-      // Convert Date to trigger object
-      const trigger: Notifications.NotificationTriggerInput =
-        date instanceof Date
-          ? ({ type: 'date', date } as Notifications.NotificationTriggerInput)
-          : date;
+      // Handle null date (immediate notification)
+      let trigger: Notifications.NotificationTriggerInput | null = null;
+      
+      if (date instanceof Date) {
+        trigger = { type: 'date', date } as Notifications.NotificationTriggerInput;
+      } else if (date) {
+        trigger = date;
+      }
 
       const notificationId = await Notifications.scheduleNotificationAsync({
         content: {
@@ -146,9 +162,11 @@ export class NotificationService {
         identifier,
       });
 
+      console.log('Notification scheduled', { notificationId, identifier });
+
       return notificationId;
     } catch (error) {
-      log('Error scheduling notification:', 'error',error);
+      console.error('Error scheduling notification:', error);
       return null;
     }
   }
@@ -175,7 +193,7 @@ export class NotificationService {
     try {
       const hasPermission = await this.checkPermissions();
       if (!hasPermission) {
-        log('Notification permissions not granted', 'warn');
+        console.warn('Notification permissions not granted');
         return null;
       }
 
@@ -189,13 +207,20 @@ export class NotificationService {
             channelId: channelId ?? 'habit-reminders',
           }),
         },
-        trigger: ({ type: 'calendar', hour, minute, repeats } as Notifications.NotificationTriggerInput),
+        trigger: {
+          type: 'calendar',
+          hour,
+          minute,
+          repeats,
+        } as Notifications.NotificationTriggerInput,
         identifier,
       });
 
+      console.log('Repeating notification scheduled', { notificationId, hour, minute });
+
       return notificationId;
     } catch (error) {
-      log('Error scheduling repeating notification:','error' ,error);
+      console.error('Error scheduling repeating notification:', error);
       return null;
     }
   }
@@ -205,7 +230,7 @@ export class NotificationService {
       await Notifications.cancelScheduledNotificationAsync(identifier);
       return true;
     } catch (error) {
-      log('Error canceling notification:','error' ,error);
+      console.error('Error canceling notification:', error);
       return false;
     }
   }
@@ -215,7 +240,7 @@ export class NotificationService {
       await Notifications.cancelAllScheduledNotificationsAsync();
       return true;
     } catch (error) {
-      log('Error canceling all notifications:','error' ,error);
+      console.error('Error canceling all notifications:', error);
       return false;
     }
   }
@@ -224,7 +249,7 @@ export class NotificationService {
     try {
       return await Notifications.getAllScheduledNotificationsAsync();
     } catch (error) {
-      log('Error getting scheduled notifications:', 'error',error);
+      console.error('Error getting scheduled notifications:', error);
       return [];
     }
   }
@@ -233,7 +258,7 @@ export class NotificationService {
     try {
       await Notifications.dismissNotificationAsync(identifier);
     } catch (error) {
-      log('Error dismissing notification:','error' ,error);
+      console.error('Error dismissing notification:', error);
     }
   }
 
@@ -241,7 +266,7 @@ export class NotificationService {
     try {
       await Notifications.dismissAllNotificationsAsync();
     } catch (error) {
-      log('Error dismissing all notifications:','error' ,error);
+      console.error('Error dismissing all notifications:', error);
     }
   }
 
@@ -249,7 +274,7 @@ export class NotificationService {
     try {
       return await Notifications.getBadgeCountAsync();
     } catch (error) {
-      log('Error getting badge count:','error' ,error);
+      console.error('Error getting badge count:', error);
       return 0;
     }
   }
@@ -259,12 +284,69 @@ export class NotificationService {
       await Notifications.setBadgeCountAsync(count);
       return true;
     } catch (error) {
-      log('Error setting badge count:','error' ,error);
+      console.error('Error setting badge count:', error);
       return false;
     }
   }
 
-  // Listener management
+  /**
+   * Handle notification navigation
+   */
+  private handleNotificationNavigation(data: NotificationData) {
+    try {
+      // If custom screen is specified, navigate there
+      if (data.screen) {
+        router.push(data.screen as any);
+        return;
+      }
+
+      // Navigate based on notification type
+      if (data.notificationId) {
+        // Navigate to notification detail
+        router.push(`/(tabs)/notifications/${data.notificationId}` as any);
+      } else if (data.habitId) {
+        // Navigate to habit detail
+        router.push(`/(tabs)/habits/${data.habitId}` as any);
+      } else {
+        // Default to notifications list
+        router.push('/(tabs)/notifications' as any);
+      }
+    } catch (error) {
+      console.error('Error navigating from notification:', error);
+      // Fallback to home
+      router.push('/(tabs)/home' as any);
+    }
+  }
+
+  /**
+   * Mark notification as received in database
+   */
+  private async markNotificationReceived(notificationId: number, userId: number) {
+    try {
+      if (this.notificationActions) {
+        await this.notificationActions.markAsDelivered(notificationId, userId);
+      }
+    } catch (error) {
+      console.error('Error marking notification as received:', error);
+    }
+  }
+
+  /**
+   * Mark notification as read in database
+   */
+  private async markNotificationRead(notificationId: number, userId: number) {
+    try {
+      if (this.notificationActions) {
+        await this.notificationActions.markAsRead(notificationId, userId);
+      }
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  }
+
+  /**
+   * Setup notification listeners with enhanced handling
+   */
   setupNotificationListeners(
     onReceived?: (notification: Notifications.Notification) => void,
     onResponse?: (response: Notifications.NotificationResponse) => void
@@ -273,51 +355,54 @@ export class NotificationService {
     this.removeNotificationListeners();
 
     // Set up received listener (when app is in foreground)
-    if (onReceived) {
-      this.notificationReceivedListener =
-        Notifications.addNotificationReceivedListener(onReceived);
-    }else {
-      /**
-       * TODO both 
-       * 
-       * extract the notification mark that notifcation as received
-       */
-    }
-    /**
-     * TODO
-     * 
-     * 1. Add Default action for the notifcation listeners
-     * 2. extract and redirect to the notifications page if notifcation id available redirect to notifcations/id  make use of expo linking
-     * 
-     *  */ 
+    this.notificationReceivedListener = Notifications.addNotificationReceivedListener(
+      async (notification) => {
+        console.log('Notification received', {
+          title: notification.request.content.title,
+          body: notification.request.content.body,
+        });
 
+        // Extract data
+        const data = notification.request.content.data as NotificationData;
+
+        // Mark as delivered in database
+        if (data.notificationId && data.userId) {
+          await this.markNotificationReceived(data.notificationId, data.userId);
+        }
+
+        // Call custom handler if provided
+        if (onReceived) {
+          onReceived(notification);
+        }
+      }
+    );
 
     // Set up response listener (when user taps notification)
-        if (onResponse) {
-          this.notificationResponseListener =
-            Notifications.addNotificationResponseReceivedListener(onResponse);
-        } else {
-          // Default response listener: extract and safely handle data from the notification
-          this.notificationResponseListener = Notifications.addNotificationResponseReceivedListener(
-            (response) => {
-              // content.data is typed as Record<string, unknown> by the notifications lib,
-              // so cast it and perform a minimal runtime check before treating it as NotificationSchemaType.
-              const rawData = response.notification.request.content.data as
-                | NotificationSchemaType
-                | Record<string, unknown>
-                | undefined;
-    
-              // Basic runtime guard: check for a required property (userId) before asserting full type
-              const data =
-                rawData && typeof (rawData as any).userId === 'number'
-                  ? (rawData as NotificationSchemaType)
-                  : rawData;
-    
-              // Use or log the data as needed (avoid assuming full NotificationSchemaType without validation)
-              log('Notification response data', 'debug' ,data);
-            }
-          );
+    this.notificationResponseListener = Notifications.addNotificationResponseReceivedListener(
+      async (response) => {
+        console.log('Notification tapped', {
+          actionIdentifier: response.actionIdentifier,
+        });
+
+        // Extract data
+        const data = response.notification.request.content.data as NotificationData;
+
+        // Mark as read in database
+        if (data.notificationId && data.userId) {
+          await this.markNotificationRead(data.notificationId, data.userId);
         }
+
+        // Handle navigation
+        this.handleNotificationNavigation(data);
+
+        // Call custom handler if provided
+        if (onResponse) {
+          onResponse(response);
+        }
+      }
+    );
+
+    console.log('Notification listeners set up');
   }
 
   removeNotificationListeners(): void {
@@ -330,6 +415,8 @@ export class NotificationService {
       this.notificationResponseListener.remove();
       this.notificationResponseListener = undefined;
     }
+
+    console.log('Notification listeners removed');
   }
 
   // Individual listener methods (for custom usage)
@@ -352,9 +439,26 @@ export class NotificationService {
   // Get the notification that opened the app
   async getLastNotificationResponseAsync(): Promise<Notifications.NotificationResponse | null> {
     try {
-      return await Notifications.getLastNotificationResponseAsync();
+      const response = await Notifications.getLastNotificationResponseAsync();
+      
+      if (response) {
+        console.log('App opened from notification', response);
+        
+        // Handle navigation from the notification that opened the app
+        const data = response.notification.request.content.data as NotificationData;
+        
+        // Mark as read
+        if (data.notificationId && data.userId && this.notificationActions) {
+          await this.notificationActions.markAsRead(data.notificationId, data.userId);
+        }
+        
+        // Navigate
+        this.handleNotificationNavigation(data);
+      }
+      
+      return response;
     } catch (error) {
-      log('Error getting last notification response:','error' ,error);
+      console.error('Error getting last notification response:', error);
       return null;
     }
   }

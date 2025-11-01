@@ -6,11 +6,8 @@ import {
   type CreateNotificationSchemaType,
   type UpdateNotificationSchemaType,
 } from "@/types";
-import { NotificationService } from "@/lib/services";
 
 export class NotificationActions {
-
-    private notifications = new NotificationService()
 
   /**
    * Create notification
@@ -23,16 +20,10 @@ export class NotificationActions {
       .values(parsed)
       .returning();
 
-    if(parsed.channel !== 'email'){
-        await this.notifications.scheduleNotificationAsync({
-            title: parsed.title,
-            body: parsed.message,
-            channelId: parsed.type === 'system' ? 'default': 'habit-reminders',
-            date: notification.scheduledFor || parsed.scheduledFor || null,
-            data: notification
-        })
-    }    
-
+    // Note: Notification scheduling should be handled at a higher level
+    // to avoid circular dependencies
+    // TODO: Move this to a service layer that can import both NotificationActions and NotificationService
+    
     return notification;
   }
 

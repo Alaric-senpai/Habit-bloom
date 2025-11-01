@@ -6,26 +6,19 @@ import { networkService } from '@/lib/services';
 import { clipboardService } from '@/lib/services';
 import { hapticService } from '@/lib/services';
 import { NetworkStatus } from '@/lib/services/network';
+import { LoginSchemaType, RegisterSchemaType, sanitizedUserSchemaType } from '@/types';
+import storage from '@/lib/storage/mmkv';
+import { UserActions } from '@/database/actions';
+import { log } from '@/lib/utils';
+import { NotificationTrigger, NotificationTriggerInput } from 'expo-notifications';
 // ============================================================================
 // Types
 // ============================================================================
 
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  avatar?: string;
-  createdAt: Date;
-  settings: {
-    notificationsEnabled: boolean;
-    hapticsEnabled: boolean;
-    theme: 'light' | 'dark' | 'auto';
-    defaultReminderTime: { hour: number; minute: number };
-  };
-}
+
 
 export interface AuthState {
-  user: User | null;
+  user: sanitizedUserSchemaType | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
@@ -40,10 +33,9 @@ export interface PermissionsState {
 export interface HabitBloomContextType {
   // Auth
   auth: AuthState;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (data:LoginSchemaType) => Promise<boolean>;
   logout: () => Promise<void>;
-  register: (email: string, password: string, name: string) => Promise<boolean>;
-  updateUserSettings: (settings: Partial<User['settings']>) => Promise<void>;
+  register: (data:RegisterSchemaType) => Promise<boolean>;
 
   // Permissions
   permissions: PermissionsState;
@@ -114,8 +106,10 @@ const HabitBloomContext = createContext<HabitBloomContextType | undefined>(undef
 // ============================================================================
 
 export function HabitBloomProvider({ children }: { children: ReactNode }) {
+
+  const authActions = new UserActions()
   // ========================================
-  // Auth State (Dummy for now)
+  // Auth State
   // ========================================
   const [auth, setAuth] = useState<AuthState>({
     user: null,
@@ -154,15 +148,26 @@ export function HabitBloomProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const initialize = async () => {
       try {
-        // Check stored auth (dummy implementation)
+        // Check stored auth 
+        const userid = await storage.getNumber("activeUserID")
+
+        if(!userid){
+          setAuth({
+            user: null,
+            isAuthenticated: true,
+            isLoading: false,
+            error: null,
+          })
+
+          return
+        }
         // TODO: Replace with actual auth check
-        await new Promise((resolve) => setTimeout(resolve, 1000));
         
         // Initialize dummy user if needed
-        const storedUser = null; // TODO: Get from secure storage
+        const storedUser = authActions.getUserById(userid)
         if (storedUser) {
           setAuth({
-            user: storedUser,
+            user: storedUser as sanitizedUserSchemaType,
             isAuthenticated: true,
             isLoading: false,
             error: null,
@@ -184,10 +189,10 @@ export function HabitBloomProvider({ children }: { children: ReactNode }) {
         // Set up notification listeners
         notificationService.setupNotificationListeners(
           (notification) => {
-            console.log('Notification received:', notification);
+            log('Notification received:', 'debug' ,notification);
           },
           (response) => {
-            console.log('Notification tapped:', response);
+            log('Notification tapped:', 'debug' ,response);
             // Handle navigation based on notification data
           }
         );
@@ -207,10 +212,18 @@ export function HabitBloomProvider({ children }: { children: ReactNode }) {
           updatesService.startAutomaticUpdateChecks(30);
         }
 
-        // Apply user haptic settings
-        if (auth.user?.settings.hapticsEnabled === false) {
-          hapticService.setEnabled(false);
+        if(storage.getBoolean('hapticsEnabled')){
+          hapticService.setEnabled(true)
+        }else{
+          storage.set('hapticsEnabled', true)
+          hapticService.setEnabled(true)
         }
+
+        // // Apply user haptic settings
+        // haptics will be enabled by default
+        // if (auth.user?.settings.hapticsEnabled === false) {
+        //   hapticService.setEnabled(false);
+        // }
 
         setIsInitializing(false);
 
@@ -221,7 +234,7 @@ export function HabitBloomProvider({ children }: { children: ReactNode }) {
           networkService.cleanup();
         };
       } catch (error) {
-        console.error('Error initializing HabitBloom:', error);
+        log('Error initializing HabitBloom:', 'error' ,error);
         setIsInitializing(false);
       }
     };
@@ -232,35 +245,33 @@ export function HabitBloomProvider({ children }: { children: ReactNode }) {
   // ========================================
   // Auth Methods (Dummy implementations)
   // ========================================
-  const login = useCallback(async (email: string, password: string): Promise<boolean> => {
+  const login = useCallback(async (data:LoginSchemaType): Promise<boolean> => {
     setAuth((prev) => ({ ...prev, isLoading: true, error: null }));
     
     try {
       // TODO: Replace with actual API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      // Dummy user
-      const user: User = {
-        id: '1',
-        email,
-        name: email.split('@')[0],
-        createdAt: new Date(),
-        settings: {
-          notificationsEnabled: true,
-          hapticsEnabled: true,
-          theme: 'auto',
-          defaultReminderTime: { hour: 9, minute: 0 },
-        },
-      };
 
+      const loginResponse = await authActions.login(data)
+
+      if(loginResponse){
+        setAuth({
+        user:loginResponse as sanitizedUserSchemaType,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+      });
+      hapticService.success();
+      return true;
+      }
+  
       setAuth({
-        user,
+        user:null,
         isAuthenticated: true,
         isLoading: false,
         error: null,
       });
 
-      hapticService.success();
+      hapticService.error();
       return true;
     } catch (error) {
       setAuth({
@@ -276,7 +287,9 @@ export function HabitBloomProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     // TODO: Replace with actual logout logic
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    // await new Promise((resolve) => setTimeout(resolve, 500));
+
+    storage.remove('activeUserID')
     
     setAuth({
       user: null,
@@ -289,35 +302,28 @@ export function HabitBloomProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const register = useCallback(
-    async (email: string, password: string, name: string): Promise<boolean> => {
+    async (data:RegisterSchemaType): Promise<boolean> => {
       setAuth((prev) => ({ ...prev, isLoading: true, error: null }));
       
       try {
         // TODO: Replace with actual API call
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        
-        const user: User = {
-          id: '1',
-          email,
-          name,
-          createdAt: new Date(),
-          settings: {
-            notificationsEnabled: true,
-            hapticsEnabled: true,
-            theme: 'auto',
-            defaultReminderTime: { hour: 9, minute: 0 },
-          },
-        };
+        const registerResponse = await authActions.createAccount(data)
 
-        setAuth({
-          user,
-          isAuthenticated: true,
-          isLoading: false,
-          error: null,
-        });
+        if(registerResponse){
+            setAuth({
+              user:registerResponse as sanitizedUserSchemaType,
+              isAuthenticated: true,
+              isLoading: false,
+              error: null,
+            });
+    
+            hapticService.success();
+            return true;
 
-        hapticService.success();
-        return true;
+        }
+            hapticService.error();
+            return true;
+
       } catch (error) {
         setAuth({
           user: null,
@@ -332,27 +338,6 @@ export function HabitBloomProvider({ children }: { children: ReactNode }) {
     []
   );
 
-  const updateUserSettings = useCallback(
-    async (settings: Partial<User['settings']>) => {
-      if (!auth.user) return;
-
-      const updatedSettings = { ...auth.user.settings, ...settings };
-      
-      // Update haptics if changed
-      if (settings.hapticsEnabled !== undefined) {
-        hapticService.setEnabled(settings.hapticsEnabled);
-      }
-
-      setAuth((prev) => ({
-        ...prev,
-        user: prev.user ? { ...prev.user, settings: updatedSettings } : null,
-      }));
-
-      // TODO: Persist to backend/storage
-      hapticService.success();
-    },
-    [auth.user]
-  );
 
   // ========================================
   // Permission Methods
@@ -389,7 +374,7 @@ export function HabitBloomProvider({ children }: { children: ReactNode }) {
         hapticService.success();
         return eventId;
       } catch (error) {
-        console.error('Error creating calendar event:', error);
+        log('Error creating calendar event:','error' ,error);
         hapticService.error();
         return null;
       }
@@ -416,7 +401,7 @@ export function HabitBloomProvider({ children }: { children: ReactNode }) {
     async (details: {
       title: string;
       body?: string;
-      date: Date;
+      date: Date | NotificationTriggerInput;
       identifier?: string;
       data?: Record<string, any>;
     }) => {
@@ -530,7 +515,6 @@ export function HabitBloomProvider({ children }: { children: ReactNode }) {
     login,
     logout,
     register,
-    updateUserSettings,
 
     // Permissions
     permissions,
@@ -597,8 +581,8 @@ export function useHabitBloom() {
  * Hook for auth operations
  */
 export function useAuth() {
-  const { auth, login, logout, register, updateUserSettings } = useHabitBloom();
-  return { auth, login, logout, register, updateUserSettings };
+  const { auth, login, logout, register } = useHabitBloom();
+  return { auth, login, logout, register };
 }
 
 /**

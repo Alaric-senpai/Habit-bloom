@@ -33,9 +33,9 @@ export default function RootLayout() {
     const RunMigrations = async()=>{
         try {
           await initializeDatabase()
-          log(chalk.green("Database Migrated successfully"))
+          log('Database initaialised successfully', 'success')
         } catch (error) {
-          log(chalk.red("Error when inintializing databse"))
+          log('Error when initializing the database', 'error', error)
         }
     };
 

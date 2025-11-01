@@ -2,6 +2,7 @@ import { drizzle } from 'drizzle-orm/expo-sqlite';
 import { migrate } from 'drizzle-orm/expo-sqlite/migrator';
 import * as SQLite from 'expo-sqlite';
 import migrations from '../drizzle/migrations';
+import { log } from '@/lib/utils';
 
 let database: ReturnType<typeof drizzle> | null = null;
 
@@ -11,19 +12,19 @@ export const initializeDatabase = async () => {
       return database; // Already initialized
     }
 
-    console.log('🔄 Initializing database...');
+    log('Initialising database...', 'info')
     
     const expo = SQLite.openDatabaseSync('habitbloom.db');
     database = drizzle(expo);
     
     // Run migrations
-    console.log('🔄 Running migrations...');
+    log('Running Migrations...', 'info')
     await migrate(database, migrations);
     
-    console.log('✅ Database initialized and migrations completed');
+    log('✅ Database initialized and migrations completed', 'success');
     return database;
   } catch (error) {
-    console.error('❌ Database initialization failed:', error);
+    log('❌ Database initialization failed:', 'error' ,error);
     
     throw error;
   }

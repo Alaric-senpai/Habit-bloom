@@ -2,6 +2,8 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import * as Device from 'expo-device'
 import * as constants from 'expo-constants'
+import { log } from '../utils';
+import { NotificationSchemaType } from '@/types';
 // Configure notification behavior when app is in foreground
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -120,7 +122,7 @@ export class NotificationService {
     try {
       const hasPermission = await this.checkPermissions();
       if (!hasPermission) {
-        console.warn('Notification permissions not granted');
+        log('Notification permissions not granted', 'warn');
         return null;
       }
 
@@ -146,7 +148,7 @@ export class NotificationService {
 
       return notificationId;
     } catch (error) {
-      console.error('Error scheduling notification:', error);
+      log('Error scheduling notification:', 'error',error);
       return null;
     }
   }
@@ -173,7 +175,7 @@ export class NotificationService {
     try {
       const hasPermission = await this.checkPermissions();
       if (!hasPermission) {
-        console.warn('Notification permissions not granted');
+        log('Notification permissions not granted', 'warn');
         return null;
       }
 
@@ -193,7 +195,7 @@ export class NotificationService {
 
       return notificationId;
     } catch (error) {
-      console.error('Error scheduling repeating notification:', error);
+      log('Error scheduling repeating notification:','error' ,error);
       return null;
     }
   }
@@ -203,7 +205,7 @@ export class NotificationService {
       await Notifications.cancelScheduledNotificationAsync(identifier);
       return true;
     } catch (error) {
-      console.error('Error canceling notification:', error);
+      log('Error canceling notification:','error' ,error);
       return false;
     }
   }
@@ -213,7 +215,7 @@ export class NotificationService {
       await Notifications.cancelAllScheduledNotificationsAsync();
       return true;
     } catch (error) {
-      console.error('Error canceling all notifications:', error);
+      log('Error canceling all notifications:','error' ,error);
       return false;
     }
   }
@@ -222,7 +224,7 @@ export class NotificationService {
     try {
       return await Notifications.getAllScheduledNotificationsAsync();
     } catch (error) {
-      console.error('Error getting scheduled notifications:', error);
+      log('Error getting scheduled notifications:', 'error',error);
       return [];
     }
   }
@@ -231,7 +233,7 @@ export class NotificationService {
     try {
       await Notifications.dismissNotificationAsync(identifier);
     } catch (error) {
-      console.error('Error dismissing notification:', error);
+      log('Error dismissing notification:','error' ,error);
     }
   }
 
@@ -239,7 +241,7 @@ export class NotificationService {
     try {
       await Notifications.dismissAllNotificationsAsync();
     } catch (error) {
-      console.error('Error dismissing all notifications:', error);
+      log('Error dismissing all notifications:','error' ,error);
     }
   }
 
@@ -247,7 +249,7 @@ export class NotificationService {
     try {
       return await Notifications.getBadgeCountAsync();
     } catch (error) {
-      console.error('Error getting badge count:', error);
+      log('Error getting badge count:','error' ,error);
       return 0;
     }
   }
@@ -257,7 +259,7 @@ export class NotificationService {
       await Notifications.setBadgeCountAsync(count);
       return true;
     } catch (error) {
-      console.error('Error setting badge count:', error);
+      log('Error setting badge count:','error' ,error);
       return false;
     }
   }
@@ -274,13 +276,48 @@ export class NotificationService {
     if (onReceived) {
       this.notificationReceivedListener =
         Notifications.addNotificationReceivedListener(onReceived);
+    }else {
+      /**
+       * TODO both 
+       * 
+       * extract the notification mark that notifcation as received
+       */
     }
+    /**
+     * TODO
+     * 
+     * 1. Add Default action for the notifcation listeners
+     * 2. extract and redirect to the notifications page if notifcation id available redirect to notifcations/id  make use of expo linking
+     * 
+     *  */ 
+
 
     // Set up response listener (when user taps notification)
-    if (onResponse) {
-      this.notificationResponseListener =
-        Notifications.addNotificationResponseReceivedListener(onResponse);
-    }
+        if (onResponse) {
+          this.notificationResponseListener =
+            Notifications.addNotificationResponseReceivedListener(onResponse);
+        } else {
+          // Default response listener: extract and safely handle data from the notification
+          this.notificationResponseListener = Notifications.addNotificationResponseReceivedListener(
+            (response) => {
+              // content.data is typed as Record<string, unknown> by the notifications lib,
+              // so cast it and perform a minimal runtime check before treating it as NotificationSchemaType.
+              const rawData = response.notification.request.content.data as
+                | NotificationSchemaType
+                | Record<string, unknown>
+                | undefined;
+    
+              // Basic runtime guard: check for a required property (userId) before asserting full type
+              const data =
+                rawData && typeof (rawData as any).userId === 'number'
+                  ? (rawData as NotificationSchemaType)
+                  : rawData;
+    
+              // Use or log the data as needed (avoid assuming full NotificationSchemaType without validation)
+              log('Notification response data', 'debug' ,data);
+            }
+          );
+        }
   }
 
   removeNotificationListeners(): void {
@@ -317,7 +354,7 @@ export class NotificationService {
     try {
       return await Notifications.getLastNotificationResponseAsync();
     } catch (error) {
-      console.error('Error getting last notification response:', error);
+      log('Error getting last notification response:','error' ,error);
       return null;
     }
   }

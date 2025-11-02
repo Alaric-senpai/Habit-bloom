@@ -28,6 +28,7 @@ export default function RegisterScreen() {
   const {
     control,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(registerSchema),
@@ -46,15 +47,18 @@ export default function RegisterScreen() {
     triggerHaptic('impact', 'light');
 
     console.log('register dto', data)
-    // const success = await register(data);
+    const success = await register(data);
 
-    // if (success) {
-    //   triggerHaptic('success');
-    //   router.replace('/');
-    // } else {
-    //   triggerHaptic('error');
-    //   Alert.alert('Error', 'Registration failed. Please try again.');
-    // }
+    console.log('Register sucees', success)
+
+    if (success) {
+      reset()
+      triggerHaptic('success');
+      router.replace('/(tabs)');
+    } else {
+      triggerHaptic('error');
+      Alert.alert('Error', 'Registration failed. Please try again.');
+    }
   };
 
   return (
@@ -122,9 +126,9 @@ export default function RegisterScreen() {
           <InputField
           control={control}
           name="timezone"
-          icon="lock-closed-outline"
+          icon="globe"
           placeholder="Africa/Nairobi"
-          label="Confirm Password"
+          label="Timezone"
           error={errors.timezone?.message}
         />
 

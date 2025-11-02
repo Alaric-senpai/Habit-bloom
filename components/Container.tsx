@@ -3,7 +3,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context'
 
 export default function Container({children}: {children:React.ReactNode}) {
   return (
-    <SafeAreaProvider className='flex-1 bg-primary'>
+    <SafeAreaProvider style={{flex: 1}}>
         {children}
     </SafeAreaProvider>
   )

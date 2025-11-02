@@ -81,7 +81,7 @@ const onboardingData = [
               style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}
             >
               {/* Logo/Image */}
-              <View style={{ width: 256, height: 256, alignItems: 'center', justifyContent: 'center', marginBottom: 48 }}>
+              <View style={{ width: 256, height: 306, alignItems: 'center', justifyContent: 'center', marginBottom: 48 }}>
                 <Image source={item.image} style={{ width: '100%', height: '100%' }} contentFit="contain" />
               </View>
 
@@ -110,7 +110,7 @@ const onboardingData = [
                 />
             ))}
             </View>
-            <View className='items-center justify-between flex-row w-full '>
+            <View className='items-center justify-between flex-row w-full mt-3'>
                 {currentPage < onboardingData.length - 1 && (
                     <Button
                     onPress={handleSkip}

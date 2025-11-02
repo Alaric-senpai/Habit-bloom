@@ -194,7 +194,7 @@ export function HabitBloomProvider({ children }: { children: ReactNode }) {
     const initialize = async () => {
       try {
   // Check stored auth
-  const userid = await storage.getNumber('activeUserID');
+        const userid = await storage.getNumber('activeUserID');
 
         if (!userid) {
           setAuth({
@@ -296,6 +296,7 @@ export function HabitBloomProvider({ children }: { children: ReactNode }) {
         };
       } catch (error) {
         console.error('Error initializing HabitBloom:', error);
+      }finally{
         setIsInitializing(false);
       }
     };

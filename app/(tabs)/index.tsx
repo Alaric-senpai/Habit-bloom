@@ -1,5 +1,5 @@
-import { View, Text, ScrollView, Alert, TouchableOpacity, RefreshControl } from 'react-native'
-import React, { useEffect, useState, useCallback } from 'react'
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl } from 'react-native'
+import React, { useEffect, useState, useCallback, useRef } from 'react'
 import Container from '@/components/Container'
 import SwippableView from '@/components/SwippableView'
 import { Image } from 'expo-image'
@@ -11,12 +11,16 @@ import { useActions, useAuth } from '@/contexts/HabitBloomGlobalContext'
 import { clearAllData, seedDatabase } from '@/database/seeder/seed'
 import { router } from 'expo-router'
 import type { HabitSchemaType, AchievementSchemaType, HabitLogSchemaType } from '@/types'
-import TodaysMoodRecorded from '@/components/modals/TodaysMoodRecorded'
+import HabitCard from '@/components/cards/HabitCard'
+import ConfirmationModal, { ConfirmationModalRef } from '@/components/modals/ConfirmationModal'
+import AddHabitFormReusableModal from '@/components/AddHabitFormReusableModal'
+import { SuccessRateGauge } from '@/components/ui/CircularGauge'
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets()
   const { auth } = useAuth()
   const actions = useActions()
+  const confirmationModalRef = useRef<ConfirmationModalRef>(null)
 
   // State
   const [todayHabits, setTodayHabits] = useState<HabitSchemaType[]>([])
@@ -77,7 +81,6 @@ export default function HomeScreen() {
       })
 
       // Load achievements from last 7 days
-      const allAchievements = await actions.achievement.getAchievements(userId)
       const recentAchievements = await actions.achievement.getAchievementsThisWeek(userId)
       setWeekAchievements(recentAchievements)
 
@@ -133,145 +136,73 @@ export default function HomeScreen() {
   }, [userId, getGreeting, loadData])
 
   // Check if habit is completed today
-  const isHabitCompleted = useCallback((habitId: number) => {
-    return todayLogs.some(log => log.habitId === habitId && log.status === 'completed')
-  }, [todayLogs])
 
   // Get habit streak
-  const getHabitStreak = useCallback((habitId: number) => {
-    const habit = todayHabits.find(h => h.id === habitId)
-    return habit?.currentStreak || 0
-  }, [todayHabits])
-
-  // Complete habit
-  const handleCompleteHabit = useCallback(async (habitId: number) => {
-    if (!userId) return
-
-    try {
-      const habit = todayHabits.find(h => h.id === habitId)
-      if (!habit) return
-
-      // Check if already completed
-      if (isHabitCompleted(habitId)) {
-        Alert.alert('Already Completed', 'This habit is already completed for today!')
-        return
-      }
-
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-
-      // Create log
-      await actions.habitLog.createLog({
-        habitId,
-        userId,
-        status: 'completed',
-        logDate: today,
-        note: '',
-        value: 1,
-        mood: '',
-      })
-
-      // Update habit stats
-      await actions.habit.updateHabit(habitId, userId, {
-        totalCompletions: (habit.totalCompletions || 0) + 1,
-        currentStreak: (habit.currentStreak || 0) + 1,
-        longestStreak: Math.max(habit.longestStreak || 0, (habit.currentStreak || 0) + 1),
-        lastCompletedAt: new Date(),
-      })
-
-      // Reload data
-      await loadData()
-
-      Alert.alert('Great Job! 🎉', `You've completed "${habit.title}"!`)
-    } catch (error) {
-      console.error('Error completing habit:', error)
-      Alert.alert('Error', 'Failed to complete habit')
-    }
-  }, [userId, todayHabits, isHabitCompleted, actions, loadData])
-
-  // Delete habit
-  const handleDeleteHabit = useCallback(async (habitId: number) => {
-    const habit = todayHabits.find(h => h.id === habitId)
-    if (!habit) return
-
-    Alert.alert(
-      'Delete Habit',
-      `Are you sure you want to delete "${habit.title}"?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Delete', 
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await actions.habit.deleteHabit(habitId, userId!)
-              await loadData()
-              Alert.alert('Deleted', 'Habit deleted successfully')
-            } catch (error) {
-              console.error('Error deleting habit:', error)
-              Alert.alert('Error', 'Failed to delete habit')
-            }
-          }
-        }
-      ]
-    )
-  }, [todayHabits, actions.habit, userId, loadData])
 
   // Seeder functions
   const runSeeder = useCallback(async () => {
     if (!userId) {
-      Alert.alert('Error', 'User not authenticated')
+
+      confirmationModalRef.current?.show({
+        title: 'User error',
+        type: 'error',
+        message: 'User record could not be found'
+      })
       return
     }
     
-    Alert.alert(
-      'Seed Database',
-      'This will add sample data to your account. Continue?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Seed Data', 
-          onPress: async () => {
+    confirmationModalRef.current?.show({
+        type:'confirmation',
+        title:'Seed Database',
+        message:'This will add sample data to your account. Continue?',
+        confirmText: 'Seed data',
+        onConfirm:() => {
+          // User confirmed
+          const performSeed = async () => {
             try {
               await seedDatabase(userId)
               await loadData()
-              Alert.alert('Success', 'Database seeded successfully!')
+              confirmationModalRef.current?.show({type:'success', title:'Success', message:'Database seeded successfully!'})
             } catch (error) {
               console.error('Seeding error:', error)
-              Alert.alert('Error', 'Failed to seed database')
+              confirmationModalRef.current?.show({type:'error', title:'Error', message:'Failed to seed database'})
             }
           }
+          performSeed()
         }
-      ]
+
+    }
     )
   }, [userId, loadData])
 
   const deleteSeededData = useCallback(async () => {
     if (!userId) {
-      Alert.alert('Error', 'User not authenticated')
+      confirmationModalRef.current?.show({type:'error', title:'Error', message:'User not authenticated'})
       return
     }
     
-    Alert.alert(
-      'Clear All Data',
-      'This will permanently delete ALL data. This action cannot be undone!',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Delete All', 
-          style: 'destructive',
-          onPress: async () => {
+    confirmationModalRef.current?.show({
+        type:'warning',
+        title:'Clear All Data',
+        message:'This will permanently delete ALL data. This action cannot be undone!',
+        onConfirm:() => {
+          // User confirmed
+          const performClear = async () => {
             try {
               await clearAllData()
               await loadData()
-              Alert.alert('Success', 'All data cleared successfully!')
+              confirmationModalRef.current?.show({type:'success', title:'Success', message:'All data cleared successfully!'})
             } catch (error) {
               console.error('Clear data error:', error)
-              Alert.alert('Error', 'Failed to clear data')
+              confirmationModalRef.current?.show({type:'error', title:'Error', message:'Failed to clear data'})
             }
           }
-        }
-      ]
+          performClear()
+        },
+        confirmText: 'Delete data',
+        danger: true
+
+    }
     )
   }, [userId, loadData])
 
@@ -290,7 +221,6 @@ export default function HomeScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-      <TodaysMoodRecorded />
 
         {/* Header Section */}
         <View className='px-6 pt-4 pb-6'>
@@ -399,16 +329,13 @@ export default function HomeScreen() {
         {/* Today's Progress */}
         {stats.totalToday > 0 && (
           <View className='px-6 mb-6'>
-            <View className='bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700'>
-              <Text className='text-sm font-medium text-gray-600 dark:text-gray-400 mb-2'>
-                Today's Progress: {stats.completedToday} of {stats.totalToday} completed
-              </Text>
-              <View className='h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden'>
-                <View 
-                  className='h-full bg-primary rounded-full'
-                  style={{ width: `${stats.totalToday > 0 ? (stats.completedToday / stats.totalToday) * 100 : 0}%` }}
-                />
-              </View>
+            <View className='items-center'>
+              <SuccessRateGauge 
+                successRate={stats.successRate}
+                completed={stats.completedToday}
+                total={stats.totalToday}
+                size={200}
+              />
             </View>
           </View>
         )}
@@ -419,12 +346,18 @@ export default function HomeScreen() {
             <Text className='text-lg font-semibold text-gray-900 dark:text-white'>
               Today's Habits ({stats.completedToday}/{stats.totalToday})
             </Text>
-            <TouchableOpacity 
-              className='bg-primary rounded-full p-2'
-              onPress={() => router.push('/habits/create' as any)}
-            >
-              <Plus size={16} className='text-white' />
-            </TouchableOpacity>
+            <AddHabitFormReusableModal
+              buttonText=""
+              buttonClassName="bg-primary rounded-full p-2"
+              buttonIcon={<Plus size={16} color="white" />}
+              formProps={{
+                onSuccess: async (habit) => {
+                  console.log('New habit created:', habit);
+                  await loadData(); // Refresh the data
+                },
+                submitButtonText: "Create Habit"
+              }}
+            />
           </View>
           
           {/* Habit Cards */}
@@ -434,72 +367,26 @@ export default function HomeScreen() {
               <Text className='text-gray-600 dark:text-gray-400 text-center mb-2 font-medium'>
                 No habits yet
               </Text>
-              <Text className='text-gray-500 dark:text-gray-500 text-center text-sm'>
+              <Text className='text-gray-500 dark:text-gray-500 text-center text-sm mb-4'>
                 Create your first habit to start building better routines
               </Text>
+              <AddHabitFormReusableModal
+                buttonText="Create First Habit"
+                buttonClassName="bg-primary px-6 py-3 rounded-full flex-row items-center gap-2"
+                formProps={{
+                  onSuccess: async (habit) => {
+                    console.log('First habit created:', habit);
+                    await loadData(); // Refresh the data
+                  },
+                  submitButtonText: "Create My First Habit"
+                }}
+              />
             </View>
           ) : (
             <View className='space-y-3'>
-              {todayHabits.map((habit) => {
-                const completed = isHabitCompleted(habit.id!)
-                const streak = getHabitStreak(habit.id!)
-                
-                return (
-                  <SwippableView
-                    key={habit.id}
-                    swipeRightText="Complete"
-                    swipeLeftText="Delete"
-                    swipeRightAction={() => handleCompleteHabit(habit.id!)}
-                    swipeLeftAction={() => handleDeleteHabit(habit.id!)}
-                    rightBg="#22c55e"
-                    leftBg="#ef4444"
-                    rightIcon={<Check size={20} color="white" />}
-                    leftIcon={<Trash2 size={20} color="white" />}
-                    styles={{ borderRadius: 16, marginBottom: 12 }}
-                    isSwipable={!completed}
-                  >
-                    <TouchableOpacity
-                      activeOpacity={0.7}
-                      onPress={() => router.push(`/habits/${habit.id}` as any)}
-                    >
-                      <View 
-                        className={`bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border ${
-                          completed 
-                            ? 'bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800' 
-                            : 'border-gray-100 dark:border-gray-700'
-                        }`}
-                      >
-                        <View className='flex-row items-center justify-between'>
-                          <View className='flex-row items-center flex-1'>
-                            <Text className='text-2xl mr-3'>{habit.icon}</Text>
-                            <View className='flex-1'>
-                              <Text className={`font-semibold ${
-                                completed 
-                                  ? 'text-green-800 dark:text-green-200 line-through' 
-                                  : 'text-gray-900 dark:text-white'
-                              }`}>
-                                {habit.title}
-                              </Text>
-                              <Text className='text-sm text-gray-600 dark:text-gray-400 mt-1'>
-                                {habit.startTime || 'Anytime'} • {streak} day streak 🔥
-                              </Text>
-                            </View>
-                          </View>
-                          <View className={`w-6 h-6 rounded-full border-2 ${
-                            completed 
-                              ? 'bg-green-500 border-green-500' 
-                              : 'border-gray-300 dark:border-gray-600'
-                          } items-center justify-center`}>
-                            {completed && (
-                              <Text className='text-white text-xs'>✓</Text>
-                            )}
-                          </View>
-                        </View>
-                      </View>
-                    </TouchableOpacity>
-                  </SwippableView>
-                )
-              })}
+              {todayHabits.map((habit, idx) =>(
+                <HabitCard key={idx} habit={habit} onDataChange={loadData} userId={userId!} />
+              ) )}
             </View>
           )}
         </View>
@@ -583,6 +470,8 @@ export default function HomeScreen() {
 
         <View className='min-h-24' />
       </ScrollView>
+      
+      <ConfirmationModal ref={confirmationModalRef} />
     </Container>
   )
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth, useHabitBloom } from '@/contexts/HabitBloomGlobalContext';
@@ -17,6 +16,7 @@ import ArrowBackComponent from '@/components/ArrowBackComponent';
 import { loginSchema, type LoginSchemaType } from '@/types';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import ConfirmationModal from '@/components/modals/ConfirmationModal';
 
 // ============================================================================
 // Login Screen (React Hook Form + Zod validation)
@@ -26,6 +26,7 @@ export default function LoginScreen() {
   const { auth, login } = useAuth();
   const { triggerHaptic } = useHabitBloom();
   const router = useRouter();
+  const confirmationModalRef = useRef<any>(null);
 
   // Initialize React Hook Form with Zod
   const {
@@ -49,13 +50,13 @@ export default function LoginScreen() {
       router.replace('/');
     } else {
       triggerHaptic('error');
-      Alert.alert('Error', 'Invalid email or password');
+      confirmationModalRef.current?.show('error', 'Error', 'Invalid email or password');
     }
   };
 
   const handleGoogleLogin = () => {
     triggerHaptic('impact', 'light');
-    Alert.alert('Coming Soon', 'Google sign-in will be available soon!');
+    confirmationModalRef.current?.show('info', 'Coming Soon', 'Google sign-in will be available soon!');
   };
 
   return (
@@ -169,6 +170,8 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+      
+      <ConfirmationModal ref={confirmationModalRef} />
     </ScrollableContainer>
   );
 }

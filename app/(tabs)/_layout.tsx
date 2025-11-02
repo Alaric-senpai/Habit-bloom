@@ -2,8 +2,12 @@ import { View } from 'react-native';
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { CustomTabBar } from '@/components/CustomTabBar';
+import { useActions } from '@/contexts/HabitBloomGlobalContext';
+import TodaysMoodRecorded from '@/components/modals/TodaysMoodRecorded';
 
 export default function TabbedLayout() {
+
+
   return (
     <>
       <Tabs
@@ -47,6 +51,7 @@ export default function TabbedLayout() {
           }}
         />
       </Tabs>
+
     </>
   );
 }

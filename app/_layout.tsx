@@ -14,6 +14,8 @@ import { initializeDatabase } from '@/database/db';
 import * as splashScreen from 'expo-splash-screen'
 import { Image } from 'expo-image';
 import { Logo } from '@/constants/images';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 
 splashScreen.preventAutoHideAsync()
 export {
@@ -24,6 +26,9 @@ export {
 export default function RootLayout() {
   const { colorScheme, setColorScheme } = useColorScheme();
 
+  useEffect(()=>{
+    splashScreen.hideAsync()
+  },[])
 
   useEffect(() => {
     if (colorScheme === 'dark') {
@@ -46,26 +51,31 @@ export default function RootLayout() {
     RunMigrations();
   }, []);
 
-  useEffect(() => {
-    const hideSystemNavigation = async () => {
-      if (Platform.OS === 'android') {
-        await NavigationBar.setPositionAsync('absolute');
-        await NavigationBar.setBackgroundColorAsync('transparent');
-        await NavigationBar.setVisibilityAsync('hidden');
-      }
-    };
+  // useEffect(() => {
+  //   const hideSystemNavigation = async () => {
+  //     if (Platform.OS === 'android') {
+  //       await NavigationBar.setPositionAsync('absolute');
+  //       await NavigationBar.setBackgroundColorAsync('transparent');
+  //       await NavigationBar.setVisibilityAsync('hidden');
+  //     }
+  //   };
 
-    hideSystemNavigation();
-  }, []);
+  //   hideSystemNavigation();
+  // }, []);
 
   return (
-    <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
-      <HabitBloomProvider>
-        <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-        <Routes />
-        <PortalHost />
-      </HabitBloomProvider>
-    </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <BottomSheetModalProvider>
+        <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
+          <HabitBloomProvider>
+            <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+            <Routes />
+            <PortalHost />
+          </HabitBloomProvider>
+        </ThemeProvider>
+
+      </BottomSheetModalProvider>
+    </GestureHandlerRootView>
   );
 }
 

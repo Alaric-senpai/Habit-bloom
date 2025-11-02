@@ -31,36 +31,31 @@ export const userSchema = z.object({
   notificationsEnabled: z.boolean().default(true),
 });
 
-
-
 export const loginSchema = z.object({
   email: z.email("Invalid email address").trim().toLowerCase(),
   password: z.string().min(1, "Password is required").trim(),
 });
-
 
 export const registerSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.email("Invalid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string().min(6, "Confirm password is required"),
-  timezone: z.string().default("Africa/Nairobi").optional(), // ✅ Required with default
+  timezone: z.string().default("Africa/Nairobi").optional(),
 }).refine(data => data.password === data.confirmPassword, {
   path: ['confirmPassword'],
   message: 'Passwords do not match',
 });
 
-
-
 export const updateUserSchema = userSchema.partial().omit({ 
   id: true, 
   createdAt: true,
-  password: true, // Use separate schema for password changes
+  password: true,
 });
 
-export const sanitizedUserSchema  =userSchema.partial().omit({
+export const sanitizedUserSchema = userSchema.partial().omit({
   password: true
-})
+});
 
 export const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, "Current password is required"),
@@ -76,9 +71,10 @@ export type LoginSchemaType = z.infer<typeof loginSchema>;
 export type RegisterSchemaType = z.infer<typeof registerSchema>;
 export type UpdateUserSchemaType = z.infer<typeof updateUserSchema>;
 export type ChangePasswordSchemaType = z.infer<typeof changePasswordSchema>;
-export type sanitizedUserSchemaType = z.infer<typeof sanitizedUserSchema >
+export type sanitizedUserSchemaType = z.infer<typeof sanitizedUserSchema>;
+
 // ============================================================================
-// HABIT SCHEMAS
+// HABIT SCHEMAS (Updated with nullable transforms)
 // ============================================================================
 export const habitSchema = z.object({
   ...baseFieldsSchema,
@@ -86,37 +82,37 @@ export const habitSchema = z.object({
   
   // Core habit data
   title: z.string().min(1, "Title is required").max(100),
-  description: z.string().max(500).default(""),
-  category: z.string().max(50).default("general"),
+  description: z.string().max(500).nullable().transform(val => val ?? ""),
+  category: z.string().max(50).nullable().transform(val => val ?? "general"),
 
   // Scheduling
-  frequency: z.enum(["daily", "hourly", "weekly", "custom", "monthly", "once"]).default("daily"),
-  customFrequency: z.string().max(100).default(""), // e.g., "Mon, Wed, Fri"
-  startTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/).optional().default(""), // HH:mm format
-  endTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/).optional().default(""),
+  frequency: z.enum(["daily", "hourly", "weekly", "custom", "monthly", "once"]).nullable().transform(val => val ?? "daily"),
+  customFrequency: z.string().max(100).nullable().transform(val => val ?? ""),
+  startTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Invalid time format (HH:mm)").or(z.literal("")).nullable().transform(val => val ?? ""),
+  endTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Invalid time format (HH:mm)").or(z.literal("")).nullable().transform(val => val ?? ""),
   startDate: z.date().default(() => new Date()),
-  endDate: z.date().optional(),
+  endDate: z.date().nullable().optional(),
 
-  inCalendar: z.boolean().default(false),
+  inCalendar: z.boolean().nullable().transform(val => val ?? false),
 
   // Goals and tracking
-  goalPerDay: z.number().int().min(1).default(1),
-  totalCompletions: z.number().int().min(0).default(0),
-  currentStreak: z.number().int().min(0).default(0),
-  longestStreak: z.number().int().min(0).default(0),
-  lastCompletedAt: z.date().optional(),
+  goalPerDay: z.number().int().min(1).nullable().transform(val => val ?? 1),
+  totalCompletions: z.number().int().min(0).nullable().transform(val => val ?? 0),
+  currentStreak: z.number().int().min(0).nullable().transform(val => val ?? 0),
+  longestStreak: z.number().int().min(0).nullable().transform(val => val ?? 0),
+  lastCompletedAt: z.date().nullable().optional(),
 
   // Customization
-  colorTag: z.string().regex(/^#[0-9A-Fa-f]{6}$/).default("#A78BFA"),
-  icon: z.string().max(10).default("✨"),
-  visibility: z.enum(["private", "friends", "public"]).default("private"),
-  difficulty: z.enum(["easy", "medium", "hard"]).default("medium"),
-  rewardTag: z.string().max(100).default(""),
-  locationTag: z.string().max(100).default(""),
+  colorTag: z.string().nullable().transform(val => val ?? "#A78BFA"),
+  icon: z.string().max(10).nullable().transform(val => val ?? "✨"),
+  visibility: z.enum(["private", "friends", "public"]).nullable().transform(val => val ?? "private"),
+  difficulty: z.enum(["easy", "medium", "hard"]).nullable().transform(val => val ?? "medium"),
+  rewardTag: z.string().max(100).nullable().transform(val => val ?? ""),
+  locationTag: z.string().max(100).nullable().transform(val => val ?? ""),
 
   // State
-  isArchived: z.boolean().default(false),
-  isPaused: z.boolean().default(false),
+  isArchived: z.boolean().nullable().transform(val => val ?? false),
+  isPaused: z.boolean().nullable().transform(val => val ?? false),
 });
 
 export const createHabitSchema = habitSchema.omit({ 
@@ -127,6 +123,8 @@ export const createHabitSchema = habitSchema.omit({
   currentStreak: true,
   longestStreak: true,
   lastCompletedAt: true,
+  isArchived: true,
+  isPaused: true
 });
 
 export const updateHabitSchema = habitSchema.partial().omit({ 
@@ -148,9 +146,9 @@ export const habitLogSchema = z.object({
   userId: z.number().int().positive(),
 
   status: z.enum(["completed", "pending", "missed", "dropped", "deleted"]).default("pending"),
-  logDate: z.date(), // actual day being logged
+  logDate: z.date(),
   note: z.string().max(500).default(""),
-  value: z.number().int().min(0).default(1), // intensity or count
+  value: z.number().int().min(0).default(1),
   mood: z.string().max(50).default(""),
   autoGenerated: z.boolean().default(false).optional(),
 });
@@ -181,12 +179,9 @@ export const moodSchema = z.object({
 
   moodLevel: z.number().int().min(1).max(10),
   moodLabel: z.enum([
-    // Positive / Energized
     "Happy", "Relaxed", "Motivated", "Focused", "Grateful", "Calm", 
     "Excited", "Confident", "Proud", "Content", "Inspired", "Optimistic", "Loved",
-    // Neutral / Mixed
     "Neutral", "Reflective", "Bored", "Indifferent",
-    // Negative / Low energy
     "Tired", "Sad", "Anxious", "Angry", "Stressed", "Overwhelmed", 
     "Lonely", "Frustrated", "Disappointed", "Guilty", "Worried",
   ]).default("Neutral"),
@@ -264,7 +259,7 @@ export const achievementSchema = z.object({
   ...baseFieldsSchema,
   userId: z.number().int().positive(),
 
-  key: z.string().min(2).max(50).toUpperCase(), // e.g., "7_DAY_STREAK"
+  key: z.string().min(2).max(50).toUpperCase(),
   title: z.string().min(1).max(100),
   description: z.string().max(500).default(""),
   icon: z.string().max(10).default("🏆"),
@@ -285,7 +280,7 @@ export type AchievementSchemaType = z.infer<typeof achievementSchema>;
 export type CreateAchievementSchemaType = z.infer<typeof createAchievementSchema>;
 
 // ============================================================================
-// USER ANSWERS SCHEMAS (for onboarding)
+// USER ANSWERS SCHEMAS
 // ============================================================================
 export const userAnswerSchema = z.object({
   ...baseFieldsSchema,

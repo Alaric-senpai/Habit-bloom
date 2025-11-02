@@ -96,20 +96,19 @@ function Routes() {
 
   console.log('Current auth state', auth)
 
+  console.log('initalization state', isInitializing)
+
   const isAuthenticated = auth.isAuthenticated
 
   if(isInitializing){
     return (
-    <View className="flex-1 items-center justify-center bg-primary">
-      <View className="items-center">
+    <View className="flex-1 items-center justify-between  flex-col ">
+      <View className="items-center mt-12 justify-center">
         <View className="w-24 h-24  rounded-3xl items-center justify-center mb-6">
             <Image source={Logo} className='w-full h-full' style={{width: 120, height: 120}} />
         </View>
-        <ActivityIndicator size="large" color="white" />
-        <Text className="text-white text-lg font-semibold mt-4">
-            <ActivityIndicator size={'large'} color={'teal'} />
-        </Text>
       </View>
+        <ActivityIndicator size={110} color="teal" />
     </View>
     )
   }
@@ -126,6 +125,7 @@ function Routes() {
       {/* Protected Routes - accessible when authenticated */}
       <Stack.Protected guard={isAuthenticated}>
         <Stack.Screen name="(tabs)" options={{headerShown: false}} />
+        <Stack.Screen name="habits/[id]" options={{headerShown: false}} />
       </Stack.Protected>
 
       

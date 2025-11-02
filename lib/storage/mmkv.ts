@@ -64,6 +64,10 @@ const storage = {
 			console.warn('SecureStore.deleteItem error', error);
 		}
 	},
+
+	async getUserID(){
+		return await this.getItem('activeUserID')
+	}
 };
 
 export default storage;

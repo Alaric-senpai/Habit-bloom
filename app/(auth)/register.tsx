@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth, useHabitBloom } from '@/contexts/HabitBloomGlobalContext';
@@ -18,12 +17,14 @@ import { registerSchema, type RegisterSchemaType } from '@/types';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import InputField from '@/components/InputField';
+import ConfirmationModal from '@/components/modals/ConfirmationModal';
 
 export default function RegisterScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const { auth, register } = useAuth();
   const { triggerHaptic } = useHabitBloom();
   const router = useRouter();
+  const confirmationModalRef = useRef<any>(null);
 
   const {
     control,
@@ -57,7 +58,7 @@ export default function RegisterScreen() {
       router.replace('/(tabs)');
     } else {
       triggerHaptic('error');
-      Alert.alert('Error', 'Registration failed. Please try again.');
+      confirmationModalRef.current?.show('error', 'Error', 'Registration failed. Please try again.');
     }
   };
 
@@ -154,6 +155,8 @@ export default function RegisterScreen() {
           </TouchableOpacity>
         </View>
       </ScrollableContainer>
+      
+      <ConfirmationModal ref={confirmationModalRef} />
     </KeyboardAvoidingView>
   );
 }

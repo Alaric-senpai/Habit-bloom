@@ -4,6 +4,7 @@ import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet'
 import { Plus } from 'lucide-react-native'
 import AddHabitForm, { AddHabitFormProps } from './forms/AddHabitForm'
 import { useAuth } from '@/contexts/HabitBloomGlobalContext'
+import ReusableBottomSheet, { ReusableBottomSheetRef } from './modals/ReusableBottomSheet'
 
 interface AddHabitFormReusableModalProps {
   // Button customization
@@ -27,7 +28,7 @@ export default function AddHabitFormReusableModal({
   snapPoints = ['80%', '95%'],
   enableDynamicSizing = false
 }: AddHabitFormReusableModalProps) {
-  const bottomSheetModalRef = useRef<BottomSheetModal>(null)
+  const bottomSheetModalRef = useRef<ReusableBottomSheetRef>(null)
   const { auth } = useAuth()
   
   const userId = auth?.user?.id
@@ -69,28 +70,31 @@ export default function AddHabitFormReusableModal({
         className={buttonClassName}
       >
         {buttonIcon || <Plus size={20} color="white" />}
-        <Text className="text-white font-semibold">{buttonText}</Text>
+        {buttonText && <Text className="text-white font-semibold">{buttonText}</Text>}
       </TouchableOpacity>
 
       {/* Bottom Sheet Modal */}
-      <BottomSheetModal
+      <ReusableBottomSheet
         ref={bottomSheetModalRef}
         snapPoints={snapPoints}
+        scrollable={true}
         enableDynamicSizing={enableDynamicSizing}
-        backgroundStyle={{ backgroundColor: '#f9fafb' }}
-        handleIndicatorStyle={{ backgroundColor: '#d1d5db' }}
       >
-        <BottomSheetView className="flex-1 px-4 pb-4">
+        <View className="px-6 py-4">
+          <Text className="text-xl font-bold text-gray-900 dark:text-white mb-6 text-center">
+            Create New Habit
+          </Text>
+          
           <AddHabitForm
             userId={userId}
             onSuccess={handleSuccess}
             onCancel={handleCancel}
             submitButtonText={formProps.submitButtonText || "Create Habit"}
-            showCancelButton={formProps.showCancelButton ?? true}
+            showCancelButton={formProps.showCancelButton ?? false}
             {...formProps}
           />
-        </BottomSheetView>
-      </BottomSheetModal>
+        </View>
+      </ReusableBottomSheet>
     </>
   )
 }

@@ -1,11 +1,12 @@
 import { View, Text, ScrollView, TouchableOpacity, Alert, TextInput } from 'react-native'
 import React, { useState, useCallback, useRef } from 'react'
 import { router } from 'expo-router'
-import { ArrowLeft, User, Mail, Clock, Calendar, Award, TrendingUp, Edit2, LogOut, Trash2, Save, ChevronRight, Target } from 'lucide-react-native'
+import { ArrowLeft, User, Mail, Clock, Calendar, Award, TrendingUp, Edit2, LogOut, Trash2, Save, ChevronRight, Target, PersonStanding, BellDotIcon, LockIcon, LogOutIcon, UserCog2Icon } from 'lucide-react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAuth, useActions } from '@/contexts/HabitBloomGlobalContext'
 import { Image } from 'expo-image'
 import ConfirmationModal, { ConfirmationModalRef } from '@/components/modals/ConfirmationModal'
+import ProfileLink from '@/components/ProfileLink'
 
 export default function AccountScreen() {
   const insets = useSafeAreaInsets()
@@ -269,46 +270,42 @@ export default function AccountScreen() {
           <Text className='text-lg font-semibold text-gray-900 dark:text-white mb-4'>
             Settings
           </Text>
-          <View className='space-y-3'>
-            <TouchableOpacity
-              onPress={() => router.push('/settings/preferences' as any)}
-              className='flex-row items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-xl'
-            >
-              <Text className='text-gray-900 dark:text-white font-medium'>Preferences</Text>
-              <Text className='text-gray-400'><ChevronRight /></Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => router.push('/settings/notifications' as any)}
-              className='flex-row items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-xl'
-            >
-              <Text className='text-gray-900 dark:text-white font-medium'>Notifications</Text>
-              <Text className='text-gray-400'><ChevronRight /></Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => router.push('/settings/security' as any)}
-              className='flex-row items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-xl'
-            >
-              <Text className='text-gray-900 dark:text-white font-medium'>Security</Text>
-              <Text className='text-gray-400'><ChevronRight /></Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={handleLogout}
-              className='flex-row items-center justify-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl'
-            >
-              <LogOut size={18} className='text-blue-600 dark:text-blue-400 mr-2' />
-              <Text className='text-blue-600 dark:text-blue-400 font-medium'>Logout</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={handleDeleteAccount}
-              className='flex-row items-center justify-center p-4 bg-red-50 dark:bg-red-900/20 rounded-xl'
-            >
-              <Trash2 size={18} className='text-red-600 dark:text-red-400 mr-2' />
-              <Text className='text-red-600 dark:text-red-400 font-medium'>Delete Account</Text>
-            </TouchableOpacity>
+          <View>
+            <ProfileLink 
+              key="preferences"
+              label='Preferences' 
+              description='Customize your in app experience' 
+              onPress={() => router.push('/settings/preferences')} 
+              icon={<PersonStanding size={20} color="#6B7280" />} 
+            />
+            <ProfileLink 
+              key="notifications"
+              label='Notifications' 
+              description='See your recent notifications' 
+              onPress={() => router.push('/settings/notifications')} 
+              icon={<BellDotIcon size={20} color="#3B82F6" />} 
+            />
+            <ProfileLink 
+              key="security"
+              label='Security' 
+              description='How secure is your account' 
+              onPress={() => router.push('/settings/security')} 
+              icon={<LockIcon size={20} color="#10B981" />} 
+            />
+            <ProfileLink 
+              key="logout"
+              label='Logout' 
+              variant='warning'  
+              onPress={handleLogout} 
+              icon={<LogOutIcon size={20} color="#D97706" />} 
+            />
+            <ProfileLink 
+              key="delete"
+              label='Delete account' 
+              variant='danger' 
+              onPress={handleDeleteAccount} 
+              icon={<UserCog2Icon size={20} color="#DC2626" />} 
+            />
           </View>
         </View>
           <ConfirmationModal ref={modalRef} />

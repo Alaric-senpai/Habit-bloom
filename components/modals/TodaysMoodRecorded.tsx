@@ -106,6 +106,7 @@ export default function TodaysMoodLogger() {
     try {
       setIsChecking(true);
       const isMoodLogged = await actions.mood.isMoodLoggedToday(userId);
+      console.log('mood logged from db', isMoodLogged)
       setShouldShowModal(!isMoodLogged);
       
       if (!isMoodLogged) {
@@ -187,7 +188,9 @@ export default function TodaysMoodLogger() {
         loggedAt: new Date(),
       };
       
-      await actions.mood.logMood(moodDataToSubmit);
+      const logged =  await actions.mood.logMood(moodDataToSubmit);
+
+      __DEV__&& console.log(logged)
       
       bottomSheetModalRef.current?.dismiss();
       setShouldShowModal(false);
@@ -392,7 +395,7 @@ export default function TodaysMoodLogger() {
         {/* Header */}
         <View className='mb-6'>
           <Text className={`text-2xl font-bold text-center mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            Daily Mood Check-in 🌈
+            Daily Mood Check-in 
           </Text>
           
           {/* Progress Dots */}

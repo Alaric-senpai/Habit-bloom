@@ -6,21 +6,20 @@ import { Image } from 'expo-image'
 import { Logo } from '@/constants/images'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { Bell, MoreVertical, Plus, Target, TrendingUp, Calendar, Check, Trash2, Database, Award, Clock } from 'lucide-react-native'
+import { Bell, MoreVertical, Plus, Target, TrendingUp, Calendar, Check, Award, Clock } from 'lucide-react-native'
 import { useActions, useAuth } from '@/contexts/HabitBloomGlobalContext'
-import { clearAllData, seedDatabase } from '@/database/seeder/seed'
 import { router } from 'expo-router'
 import type { HabitSchemaType, AchievementSchemaType, HabitLogSchemaType } from '@/types'
 import HabitCard from '@/components/cards/HabitCard'
-import ConfirmationModal, { ConfirmationModalRef } from '@/components/modals/ConfirmationModal'
 import AddHabitFormReusableModal from '@/components/AddHabitFormReusableModal'
 import { SuccessRateGauge } from '@/components/ui/CircularGauge'
+import { Card, CardContent } from '@/components/ui/card'
+import DataSeedDropdowns from '@/components/DataSeedDropdowns'
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets()
   const { auth } = useAuth()
   const actions = useActions()
-  const confirmationModalRef = useRef<ConfirmationModalRef>(null)
 
   // State
   const [todayHabits, setTodayHabits] = useState<HabitSchemaType[]>([])
@@ -57,15 +56,13 @@ export default function HomeScreen() {
       // Load today's habits (active only)
       const allHabits = await actions.habit.getHabits(userId, false)
       const activeHabits = allHabits.filter(h => !h.isArchived && !h.isPaused)
-      setTodayHabits(activeHabits)
+      setTodayHabits(activeHabits as any)
 
-      console.dir(allHabits[0])
 
       // Load today's logs
       const logs = await actions.habitLog.getTodaysLogs(userId)
-      setTodayLogs(logs)
+      setTodayLogs(logs as any)
 
-      console.dir(logs[0])
 
       // Calculate stats
       const completed = logs.filter(log => log.status === 'completed').length
@@ -82,7 +79,7 @@ export default function HomeScreen() {
 
       // Load achievements from last 7 days
       const recentAchievements = await actions.achievement.getAchievementsThisWeek(userId)
-      setWeekAchievements(recentAchievements)
+      setWeekAchievements(recentAchievements as any)
 
       console.dir(recentAchievements[0])
 
@@ -139,73 +136,6 @@ export default function HomeScreen() {
 
   // Get habit streak
 
-  // Seeder functions
-  const runSeeder = useCallback(async () => {
-    if (!userId) {
-
-      confirmationModalRef.current?.show({
-        title: 'User error',
-        type: 'error',
-        message: 'User record could not be found'
-      })
-      return
-    }
-    
-    confirmationModalRef.current?.show({
-        type:'confirmation',
-        title:'Seed Database',
-        message:'This will add sample data to your account. Continue?',
-        confirmText: 'Seed data',
-        onConfirm:() => {
-          // User confirmed
-          const performSeed = async () => {
-            try {
-              await seedDatabase(userId)
-              await loadData()
-              confirmationModalRef.current?.show({type:'success', title:'Success', message:'Database seeded successfully!'})
-            } catch (error) {
-              console.error('Seeding error:', error)
-              confirmationModalRef.current?.show({type:'error', title:'Error', message:'Failed to seed database'})
-            }
-          }
-          performSeed()
-        }
-
-    }
-    )
-  }, [userId, loadData])
-
-  const deleteSeededData = useCallback(async () => {
-    if (!userId) {
-      confirmationModalRef.current?.show({type:'error', title:'Error', message:'User not authenticated'})
-      return
-    }
-    
-    confirmationModalRef.current?.show({
-        type:'warning',
-        title:'Clear All Data',
-        message:'This will permanently delete ALL data. This action cannot be undone!',
-        onConfirm:() => {
-          // User confirmed
-          const performClear = async () => {
-            try {
-              await clearAllData()
-              await loadData()
-              confirmationModalRef.current?.show({type:'success', title:'Success', message:'All data cleared successfully!'})
-            } catch (error) {
-              console.error('Clear data error:', error)
-              confirmationModalRef.current?.show({type:'error', title:'Error', message:'Failed to clear data'})
-            }
-          }
-          performClear()
-        },
-        confirmText: 'Delete data',
-        danger: true
-
-    }
-    )
-  }, [userId, loadData])
-
   const contentInsets = {
     top: insets.top,
     right: insets.right
@@ -240,7 +170,7 @@ export default function HomeScreen() {
             <View className='flex-row items-center space-x-3'>
               <TouchableOpacity 
                 className='p-3 rounded-full bg-gray-100 dark:bg-gray-800'
-                onPress={() => router.push('/notifications' as any)}
+                onPress={() => router.push('/settings/notifications')}
               >
                 <Bell size={20} className='text-gray-700 dark:text-gray-300' />
               </TouchableOpacity>
@@ -264,18 +194,10 @@ export default function HomeScreen() {
                       <Text className='text-sm text-gray-900'>Achievements</Text>
                     </View>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onPress={runSeeder}>
-                    <View className='flex-row items-center space-x-2'>
-                      <Database size={16} className='text-blue-600' />
-                      <Text className='text-sm text-blue-600'>Seed Sample Data</Text>
-                    </View>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onPress={deleteSeededData}>
-                    <View className='flex-row items-center space-x-2'>
-                      <Trash2 size={16} className='text-red-600' />
-                      <Text className='text-sm text-red-600'>Clear All Data</Text>
-                    </View>
-                  </DropdownMenuItem>
+                  <DataSeedDropdowns 
+                    userId={userId!} 
+                    onDataChange={loadData} 
+                  />
                 </DropdownMenuContent>
               </DropdownMenu>
             </View>
@@ -287,20 +209,25 @@ export default function HomeScreen() {
           <Text className='text-lg font-semibold text-gray-900 dark:text-white mb-4'>
             Today's Overview
           </Text>
+
+
           <View className='flex-row space-x-4'>
-            <View className='flex-1 bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-4'>
-              <View className='flex-row items-center justify-between mb-2'>
-                <Target size={20} className='text-blue-600 dark:text-blue-400' />
-                <Text className='text-2xl font-bold text-blue-600 dark:text-blue-400'>
-                  {stats.activeHabits}
+          <Card>
+            <CardContent>
+                <View className='flex-row items-center justify-between mb-2'>
+                  <Target size={20} className='text-blue-600 dark:text-blue-400' />
+                  <Text className='text-md font-bold text-blue-600 dark:text-blue-400'>
+                    {stats.activeHabits}
+                  </Text>
+                </View>
+                <Text className='text-sm text-blue-700 dark:text-blue-300 font-medium'>
+                  Active Habits
                 </Text>
-              </View>
-              <Text className='text-sm text-blue-700 dark:text-blue-300 font-medium'>
-                Active Habits
-              </Text>
-            </View>
-            
-            <View className='flex-1 bg-green-50 dark:bg-green-900/20 rounded-2xl p-4'>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent>
               <View className='flex-row items-center justify-between mb-2'>
                 <TrendingUp size={20} className='text-green-600 dark:text-green-400' />
                 <Text className='text-2xl font-bold text-green-600 dark:text-green-400'>
@@ -310,9 +237,12 @@ export default function HomeScreen() {
               <Text className='text-sm text-green-700 dark:text-green-300 font-medium'>
                 Success Rate
               </Text>
-            </View>
 
-            <View className='flex-1 bg-purple-50 dark:bg-purple-900/20 rounded-2xl p-4'>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent>
               <View className='flex-row items-center justify-between mb-2'>
                 <Award size={20} className='text-purple-600 dark:text-purple-400' />
                 <Text className='text-2xl font-bold text-purple-600 dark:text-purple-400'>
@@ -322,7 +252,10 @@ export default function HomeScreen() {
               <Text className='text-sm text-purple-700 dark:text-purple-300 font-medium'>
                 Total Points
               </Text>
-            </View>
+
+            </CardContent>
+          </Card>
+
           </View>
         </View>
 
@@ -335,6 +268,7 @@ export default function HomeScreen() {
                 completed={stats.completedToday}
                 total={stats.totalToday}
                 size={200}
+                
               />
             </View>
           </View>
@@ -470,8 +404,6 @@ export default function HomeScreen() {
 
         <View className='min-h-24' />
       </ScrollView>
-      
-      <ConfirmationModal ref={confirmationModalRef} />
     </Container>
   )
 }

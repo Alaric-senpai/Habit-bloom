@@ -1,3 +1,4 @@
+// components/ui/ChipSelector.tsx
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 
@@ -10,14 +11,14 @@ interface ChipSelectorProps {
   required?: boolean;
 }
 
-export const ChipSelector: React.FC<ChipSelectorProps> = ({
+export default function ChipSelector({
   label,
   options,
   value,
   onChange,
   multiSelect = false,
   required,
-}) => {
+}: ChipSelectorProps) {
   const handleSelect = (optionValue: string) => {
     if (multiSelect) {
       const currentValues = Array.isArray(value) ? value : [];
@@ -40,31 +41,33 @@ export const ChipSelector: React.FC<ChipSelectorProps> = ({
   return (
     <View className="mb-4">
       {label && (
-        <Text className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
+        <Text className="text-gray-700 dark:text-white text-md my-3 font-semibold">
           {label} {required && <Text className="text-red-500">*</Text>}
         </Text>
       )}
-      
+
       <View className="flex-row flex-wrap gap-2">
         {options.map((option) => {
           const optionValue = typeof option === 'string' ? option : option.value;
           const optionLabel = typeof option === 'string' ? option : option.label;
-          
+
           return (
             <TouchableOpacity
               key={optionValue}
               onPress={() => handleSelect(optionValue)}
-              className={`px-4 py-2.5 rounded-full ${
+              className={`px-4 py-2.5 rounded-full border-2 ${
                 isSelected(optionValue)
-                  ? 'bg-blue-500 border-2 border-blue-500'
-                  : 'bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600'
+                  ? 'bg-blue-500 border-blue-500'
+                  : 'bg-gray-200 dark:bg-slate-900 border-gray-300 dark:border-gray-700'
               }`}
             >
-              <Text className={`font-semibold ${
-                isSelected(optionValue) 
-                  ? 'text-white' 
-                  : 'text-gray-700 dark:text-gray-300'
-              }`}>
+              <Text
+                className={`font-semibold text-sm ${
+                  isSelected(optionValue)
+                    ? 'text-white'
+                    : 'text-gray-700 dark:text-white'
+                }`}
+              >
                 {optionLabel}
               </Text>
             </TouchableOpacity>
@@ -73,4 +76,4 @@ export const ChipSelector: React.FC<ChipSelectorProps> = ({
       </View>
     </View>
   );
-};
+}

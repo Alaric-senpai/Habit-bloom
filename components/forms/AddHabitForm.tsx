@@ -17,6 +17,9 @@ import {
   Check,
   X,
 } from 'lucide-react-native';
+import { Button } from '../ui/button';
+import { cn } from '@/lib/utils';
+import InputField from '../InputField';
 
 // Emoji picker data
 const HABIT_EMOJIS = [
@@ -211,51 +214,82 @@ export default function AddHabitForm({
           )}
         </View>
 
-        {/* Title */}
-        <Controller
-          control={control}
-          name="title"
-          render={({ field: { onChange, value } }) => (
-            <View>
-              <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Habit Name *
-              </Text>
-              <TextInput
-                value={value}
-                onChangeText={onChange}
-                placeholder="e.g., Morning Meditation"
-                placeholderTextColor="#9ca3af"
-                className="px-4 py-3 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white border-2 border-gray-200 dark:border-gray-700"
-              />
-              {errors.title && (
-                <Text className="text-red-600 text-sm mt-1">{errors.title.message}</Text>
-              )}
-            </View>
-          )}
-        />
 
-        {/* Description */}
-        <Controller
-          control={control}
-          name="description"
-          render={({ field: { onChange, value } }) => (
-            <View>
-              <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Description
-              </Text>
-              <TextInput
-                value={value || ''}
-                onChangeText={onChange}
-                placeholder="Add some details about this habit..."
-                placeholderTextColor="#9ca3af"
-                multiline
-                numberOfLines={3}
-                className="px-4 py-3 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-900 dark:text-white border-2 border-gray-200 dark:border-gray-700"
-                style={{ textAlignVertical: 'top' }}
-              />
-            </View>
-          )}
-        />
+
+{/* Title */}
+<InputField
+  control={control}
+  name="title"
+  label="Habit Name *"
+  placeholder="e.g., Morning Meditation"
+  icon="pencil"
+  error={errors.title?.message}
+/>
+
+{/* Description */}
+<InputField
+  control={control}
+  name="description"
+  label="Description"
+  placeholder="Add some details about this habit..."
+  icon="document-text"
+  error={errors.description?.message}
+  multiline
+  numberOfLines={3}
+/>
+
+{/* Start Time */}
+<InputField
+  control={control}
+  name="startTime"
+  label="Start Time"
+  placeholder="09:00"
+  icon="time"
+  error={errors.startTime?.message}
+/>
+
+{/* End Time */}
+<InputField
+  control={control}
+  name="endTime"
+  label="End Time"
+  placeholder="10:00"
+  icon="time"
+  error={errors.endTime?.message}
+/>
+
+{/* Daily Goal */}
+<InputField
+  control={control}
+  name="goalPerDay"
+  label="Daily Goal"
+  placeholder="1"
+  icon="target"
+  keyboardType="numeric"
+  error={errors.goalPerDay?.message}
+/>
+
+{/* Location */}
+<InputField
+  control={control}
+  name="locationTag"
+  label="Location (Optional)"
+  placeholder="e.g., Gym, Home, Office"
+  icon="location"
+  error={errors.locationTag?.message}
+/>
+
+{/* Reward */}
+<InputField
+  control={control}
+  name="rewardTag"
+  label="Reward (Optional)"
+  placeholder="e.g., Treat yourself to coffee"
+  icon="gift"
+  error={errors.rewardTag?.message}
+/>
+
+
 
         {/* Category */}
         <Controller
@@ -491,6 +525,16 @@ export default function AddHabitForm({
         />
 
         {/* Reward (Optional) */}
+        
+        <InputField
+          control={control}
+          name="rewardTag"
+          icon="rewa"
+          placeholder="Enter your name"
+          label="Full Name"
+          error={errors.rewardTag?.message}
+        />
+
         <Controller
           control={control}
           name="rewardTag"
@@ -514,12 +558,12 @@ export default function AddHabitForm({
         />
 
         {/* Submit Buttons */}
-        <View className="flex-row gap-3 pt-4">
+        <View className="flex-row gap-3 pt-4 my-3 items-center justify-between">
           {showCancelButton && (
             <TouchableOpacity
               onPress={onCancel}
               disabled={isSubmitting}
-              className="flex-1 px-6 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl border-2 border-gray-300 dark:border-gray-600"
+              className="flex-1 px-6 py-4 bg-gray-100 w-/12 dark:bg-gray-800 rounded-xl border-2 border-gray-300 dark:border-gray-600"
               activeOpacity={0.7}
             >
               <Text className="text-gray-700 dark:text-gray-300 font-semibold text-center text-base">
@@ -528,14 +572,13 @@ export default function AddHabitForm({
             </TouchableOpacity>
           )}
 
-          <TouchableOpacity
+          <Button
             onPress={handleSubmit(onSubmit)}
             disabled={isSubmitting}
-            className={`flex-1 px-6 py-4 rounded-xl ${
-              isSubmitting ? 'bg-gray-400' : 'bg-blue-500'
-            }`}
-            activeOpacity={0.7}
-          >
+            className={cn(`flex-1 px-6 py-4 min-h-14 rounded-full`,
+              isSubmitting ? 'bg-gray-400' : 'bg-blue-500',
+              showCancelButton ? 'w-1/2': 'w-full'
+            )}>
             {isSubmitting ? (
               <View className="flex-row items-center justify-center">
                 <ActivityIndicator color="white" size="small" />
@@ -548,7 +591,7 @@ export default function AddHabitForm({
                 {submitButtonText}
               </Text>
             )}
-          </TouchableOpacity>
+          </Button>
         </View>
       </View>
     </ScrollView>

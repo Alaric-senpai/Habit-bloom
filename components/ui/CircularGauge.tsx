@@ -3,186 +3,111 @@ import { View, Text, Animated } from 'react-native';
 import { CircularProgress } from 'react-native-circular-progress';
 
 interface CircularGaugeProps {
-  /** Progress value from 0 to 100 */
   progress: number;
-  /** Size of the gauge */
   size?: number;
-  /** Stroke width of the progress ring */
   strokeWidth?: number;
-  /** Background color of the track */
   backgroundColor?: string;
-  /** Color of the progress fill */
   fillColor?: string;
-  /** Color of the progress gradient end (optional) */
-  gradientEndColor?: string;
-  /** Center text to display */
   centerText?: string;
-  /** Subtitle text below center text */
   subtitle?: string;
-  /** Additional styling for the container */
   containerClassName?: string;
-  /** Animation duration in ms */
   animationDuration?: number;
 }
 
 export default function CircularGauge({
   progress = 0,
-  size = 200,
-  strokeWidth = 12,
+  size = 230,
+  strokeWidth = 20,
   backgroundColor = '#E5E7EB',
   fillColor = '#3B82F6',
-  gradientEndColor,
   centerText,
   subtitle,
   containerClassName = '',
-  animationDuration = 1500
+  animationDuration = 1500,
 }: CircularGaugeProps) {
-  // Clamp progress between 0 and 100
   const clampedProgress = Math.max(0, Math.min(100, progress));
-  
-  // Animation for smooth progress fill
-  const animatedProgress = useRef(new Animated.Value(0)).current;
-  
-  useEffect(() => {
-    Animated.timing(animatedProgress, {
-      toValue: clampedProgress,
-      duration: animationDuration,
-      useNativeDriver: false,
-    }).start();
-  }, [clampedProgress, animationDuration]);
+  const gaugeHeight = size / 2 + 60;
 
-  // Calculate dimensions for 180-degree semicircle
-  const radius = (size - strokeWidth) / 2;
-  const gaugeHeight = size / 2 + strokeWidth + 20; // Add padding for better visual balance
-  
   return (
-    <View className={`items-center justify-center ${containerClassName}`} style={{ height: gaugeHeight }}>
-      {/* Gauge Background - Full 180 degree arc */}
-      <View 
-        className="absolute"
-        style={{ 
+    <View
+      className={`items-center justify-center ${containerClassName}`}
+      style={{ height: gaugeHeight, width: size + 40 }}
+    >
+      {/* CircularProgress with 180 degree arc */}
+      <View
+        style={{
           width: size,
-          height: size / 2 + strokeWidth / 2,
-          overflow: 'hidden',
-          transform: [{ rotate: '-90deg' }]
+          height: size,
+          transform: [{ rotate: '180deg' }],
         }}
       >
         <CircularProgress
           size={size}
           width={strokeWidth}
-          fill={0}
-          tintColor="transparent"
+          fill={clampedProgress}
+          tintColor={fillColor}
           backgroundColor={backgroundColor}
-          rotation={0}
+          // rotation={180}
           lineCap="round"
           arcSweepAngle={180}
-          style={{
-            transform: [{ rotate: '90deg' }]
-          }}
         >
           {() => null}
         </CircularProgress>
       </View>
 
-      {/* Animated Progress Fill */}
-      <View 
-        className="absolute"
-        style={{ 
-          width: size,
-          height: size / 2 + strokeWidth / 2,
-          overflow: 'hidden',
-          transform: [{ rotate: '-90deg' }]
-        }}
-      >
-        <Animated.View>
-          <CircularProgress
-            size={size}
-            width={strokeWidth}
-            fill={clampedProgress}
-            tintColor={fillColor}
-            backgroundColor="transparent"
-            rotation={0}
-            lineCap="round"
-            arcSweepAngle={180}
-            style={{
-              transform: [{ rotate: '90deg' }]
-            }}
-          >
-            {() => null}
-          </CircularProgress>
-        </Animated.View>
-      </View>
-      
-      {/* Gauge Scale Markers */}
-      <View 
-        className="absolute"
+      {/* Center content positioned at bottom */}
+      <View
         style={{
-          width: size + 20,
-          height: size / 2 + 30,
-          bottom: -10,
-        }}
-      >
-        {/* 0% marker */}
-        <View 
-          className="absolute w-0.5 h-4 bg-gray-400 dark:bg-gray-500"
-          style={{
-            left: 10,
-            bottom: strokeWidth / 2 + 5,
-            transform: [{ rotate: '0deg' }],
-            transformOrigin: 'center bottom'
-          }}
-        />
-        {/* 50% marker */}
-        <View 
-          className="absolute w-0.5 h-3 bg-gray-400 dark:bg-gray-500"
-          style={{
-            left: size / 2 + 10 - 1,
-            bottom: size / 2 + strokeWidth / 2 + 5,
-          }}
-        />
-        {/* 100% marker */}
-        <View 
-          className="absolute w-0.5 h-4 bg-gray-400 dark:bg-gray-500"
-          style={{
-            right: 10,
-            bottom: strokeWidth / 2 + 5,
-            transform: [{ rotate: '0deg' }],
-            transformOrigin: 'center bottom'
-          }}
-        />
-      </View>
-      
-      {/* Center content positioned at the bottom of the gauge */}
-      <View 
-        className="absolute items-center justify-center"
-        style={{
-          bottom: 10,
+          position: 'absolute',
+          bottom: 15,
+          alignItems: 'center',
           width: size * 0.8,
         }}
       >
         {centerText && (
-          <Text className="text-3xl font-bold text-gray-900 dark:text-white text-center">
+          <Text 
+            style={{
+              fontSize: 28,
+              fontWeight: 'bold',
+              color: '#1F2937',
+              textAlign: 'center',
+              marginBottom: subtitle ? 4 : 0
+            }}
+            className="dark:text-white"
+          >
             {centerText}
           </Text>
         )}
         {subtitle && (
-          <Text className="text-sm text-gray-600 dark:text-gray-400 text-center mt-1">
+          <Text 
+            style={{
+              fontSize: 14,
+              color: '#6B7280',
+              textAlign: 'center',
+              lineHeight: 18
+            }}
+            className="dark:text-gray-400"
+          >
             {subtitle}
           </Text>
         )}
       </View>
 
-      {/* Progress indicator dot */}
-      {clampedProgress > 0 && (
-        <View
-          className="absolute w-3 h-3 rounded-full shadow-lg border-2 border-white"
-          style={{
-            backgroundColor: fillColor,
-            bottom: strokeWidth / 2 + radius + 5 - radius * Math.sin((clampedProgress / 100) * Math.PI),
-            left: size / 2 + 10 - 6 + radius * Math.cos((clampedProgress / 100) * Math.PI),
-          }}
-        />
-      )}
+      {/* Scale markers */}
+      <View
+        style={{
+          position: 'absolute',
+          bottom: size / 2 - 5,
+          width: size + 10,
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          paddingHorizontal: 5,
+        }}
+      >
+        <View style={{ width: 2, height: 8, backgroundColor: '#9CA3AF' }} />
+        <View style={{ width: 2, height: 6, backgroundColor: '#9CA3AF' }} />
+        <View style={{ width: 2, height: 8, backgroundColor: '#9CA3AF' }} />
+      </View>
     </View>
   );
 }

@@ -31,6 +31,11 @@ export default function InputField({
   showToggle,
   ...rest
 }: any) {
+
+  if(error){
+    console.log(`[error][${name}], ${error}`)
+  }
+
   return (
     <View className="mb-4">
       <Text className="text-gray-700 dark:text-white text-md my-3 font-semibold">

@@ -282,44 +282,39 @@ export default function TodaysMoodLogger() {
             <Text className={`text-center mb-6 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
               Select all that apply ({moodData.selectedFeelings.length} selected)
             </Text>
-            <BottomSheetScrollView 
-              className='max-h-96'
-              showsVerticalScrollIndicator={false}
-            >
-              <View className='flex-row flex-wrap gap-2 justify-center pb-4'>
-                {FEELINGS.map((feeling) => {
-                  const isSelected = moodData.selectedFeelings.includes(feeling.name);
-                  return (
-                    <TouchableOpacity
-                      key={feeling.name}
-                      onPress={() => toggleFeeling(feeling.name)}
-                      className={`px-4 py-2.5 rounded-full border-2 flex-row items-center gap-2 ${
-                        isSelected
-                          ? 'bg-blue-500 border-blue-500'
-                          : isDark
-                          ? 'bg-gray-800 border-gray-600'
-                          : 'bg-white border-gray-300'
-                      }`}
-                      activeOpacity={0.7}
-                    >
-                      <Text className='text-lg'>{feeling.emoji}</Text>
-                      <Text className={`font-medium ${
-                        isSelected
-                          ? 'text-white'
-                          : isDark
-                          ? 'text-gray-300'
-                          : 'text-gray-700'
-                      }`}>
-                        {feeling.name}
-                      </Text>
-                      {isSelected && (
-                        <Check size={16} color='white' />
-                      )}
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </BottomSheetScrollView>
+            <View className='flex-row flex-wrap gap-2 justify-center pb-4'>
+              {FEELINGS.map((feeling) => {
+                const isSelected = moodData.selectedFeelings.includes(feeling.name);
+                return (
+                  <TouchableOpacity
+                    key={feeling.name}
+                    onPress={() => toggleFeeling(feeling.name)}
+                    className={`px-4 py-2.5 rounded-full border-2 flex-row items-center gap-2 ${
+                      isSelected
+                        ? 'bg-blue-500 border-blue-500'
+                        : isDark
+                        ? 'bg-gray-800 border-gray-600'
+                        : 'bg-white border-gray-300'
+                    }`}
+                    activeOpacity={0.7}
+                  >
+                    <Text className='text-lg'>{feeling.emoji}</Text>
+                    <Text className={`font-medium ${
+                      isSelected
+                        ? 'text-white'
+                        : isDark
+                        ? 'text-gray-300'
+                        : 'text-gray-700'
+                    }`}>
+                      {feeling.name}
+                    </Text>
+                    {isSelected && (
+                      <Check size={16} color='white' />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
           </View>
         );
       
@@ -382,7 +377,7 @@ export default function TodaysMoodLogger() {
     <BottomSheetModal
       ref={bottomSheetModalRef}
       onDismiss={handleDismiss}
-      enableDynamicSizing
+      enableDynamicSizing={true}
       backdropComponent={renderBackdrop}
       backgroundStyle={{ 
         backgroundColor: isDark ? '#1f2937' : '#ffffff' 
@@ -391,7 +386,7 @@ export default function TodaysMoodLogger() {
         backgroundColor: isDark ? '#4b5563' : '#d1d5db' 
       }}
     >
-      <BottomSheetView className='px-6 pt-4 pb-8'>
+      <BottomSheetScrollView className='px-6 pt-4 pb-8 mb-5'>
         {/* Header */}
         <View className='mb-6'>
           <Text className={`text-2xl font-bold text-center mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -403,12 +398,14 @@ export default function TodaysMoodLogger() {
             {STEP_NAMES.map((_, index) => (
               <View
                 key={index}
-                className={`h-2 rounded-full transition-all ${
+                className={`h-2 rounded-full ${
                   index === currentStep 
                     ? 'w-8 bg-blue-500' 
                     : index < currentStep
                     ? 'w-2 bg-blue-500'
-                    : 'w-2 bg-gray-300 dark:bg-gray-600'
+                    : isDark
+                    ? 'w-2 bg-gray-600'
+                    : 'w-2 bg-gray-300'
                 }`}
               />
             ))}
@@ -425,7 +422,7 @@ export default function TodaysMoodLogger() {
         </View>
 
         {/* Navigation */}
-        <View className='flex-row justify-between items-center gap-3'>
+        <View className='flex-row justify-between mb-12 items-center gap-3 pt-4'>
           <TouchableOpacity
             onPress={prevStep}
             disabled={currentStep === 0}
@@ -485,7 +482,7 @@ export default function TodaysMoodLogger() {
             </TouchableOpacity>
           )}
         </View>
-      </BottomSheetView>
+      </BottomSheetScrollView>
     </BottomSheetModal>
   );
 }

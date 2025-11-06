@@ -1,17 +1,17 @@
 import { View, Text } from 'react-native'
-import React, { useCallback, useRef } from 'react'
+import React, { RefObject, useCallback } from 'react'
 import { Database, Trash2 } from 'lucide-react-native'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import { clearAllData, seedDatabase } from '@/database/seeder/seed'
-import ConfirmationModal, { ConfirmationModalRef } from '@/components/modals/ConfirmationModal'
+import { ConfirmationModalRef } from '@/components/modals/ConfirmationModal'
 
 interface DataSeedDropdownsProps {
   userId?: number
   onDataChange?: () => Promise<void>
+  confirmationModalRef: RefObject<ConfirmationModalRef | null>
 }
 
-export default function DataSeedDropdowns({ userId, onDataChange }: DataSeedDropdownsProps) {
-  const confirmationModalRef = useRef<ConfirmationModalRef>(null)
+export default function DataSeedDropdowns({ userId, onDataChange, confirmationModalRef }: DataSeedDropdownsProps) {
 
   // Seeder functions
   const runSeeder = useCallback(async () => {
@@ -29,6 +29,7 @@ export default function DataSeedDropdowns({ userId, onDataChange }: DataSeedDrop
       title: 'Seed Database',
       message: 'This will add sample data to your account. Continue?',
       confirmText: 'Seed data',
+      danger:true,
       onConfirm: () => {
         // User confirmed
         const performSeed = async () => {
@@ -115,9 +116,6 @@ export default function DataSeedDropdowns({ userId, onDataChange }: DataSeedDrop
           <Text className='text-sm text-red-600'>Clear All Data</Text>
         </View>
       </DropdownMenuItem>
-
-      {/* Confirmation Modal */}
-      <ConfirmationModal ref={confirmationModalRef} />
     </>
   )
 }

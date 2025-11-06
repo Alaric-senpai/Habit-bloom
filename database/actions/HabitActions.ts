@@ -46,6 +46,7 @@ export class HabitActions {
       .from(schema.habitsTable)
       .where(and(...conditions))
       .orderBy(desc(schema.habitsTable.createdAt))
+      // .groupBy(schema.habitsTable.createdAt)
       .all();
   }
 

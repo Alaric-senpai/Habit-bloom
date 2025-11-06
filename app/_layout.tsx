@@ -16,6 +16,7 @@ import { Image } from 'expo-image';
 import { Logo } from '@/constants/images';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 splashScreen.preventAutoHideAsync()
 export {
@@ -65,6 +66,7 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      {/* <SafeAreaView></SafeAreaView> */}
       <BottomSheetModalProvider>
         <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
           <HabitBloomProvider>
@@ -102,14 +104,15 @@ function Routes() {
 
   if(isInitializing){
     return (
-    <View className="flex-1 items-center justify-between  flex-col ">
-      <View className="items-center mt-12 justify-center">
-        <View className="w-24 h-24  rounded-3xl items-center justify-center mb-6">
-            <Image source={Logo} className='w-full h-full' style={{width: 120, height: 120}} />
-        </View>
-      </View>
-        <ActivityIndicator size={110} color="teal" />
+    <View className="flex-1 justify-between items-center py-16 bg-white">
+      <Image
+        source={Logo}
+        style={{ width: 120, height: 120, borderRadius: 24 }}
+        contentFit="contain"
+      />
+      <ActivityIndicator size="large" color="teal" />
     </View>
+
     )
   }
 

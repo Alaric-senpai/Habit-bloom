@@ -9,7 +9,9 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
+  TextInput,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createHabitSchema, type CreateHabitSchemaType } from '@/types';
@@ -38,9 +40,11 @@ type CreateHabitFormInput = {
 };
 import Select from '../ui/select';
 import DatePicker from '../ui/DatePicker';
+import TimePicker from '../ui/TimePicker';
 import IconPicker from '../ui/IconPicker';
 import ChipSelector from '../ui/ChipSelector';
 import { cn } from '@/lib/utils';
+import type { HabitActions } from '@/database/actions';
 
 const CATEGORIES = [
   'Health',
@@ -73,6 +77,7 @@ const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 export interface AddHabitFormProps {
   userId: number;
+  habitActions: HabitActions;
   onSuccess?: (habit: any) => void;
   onCancel?: () => void;
   submitButtonText?: string;
@@ -81,6 +86,7 @@ export interface AddHabitFormProps {
 
 export default function AddHabitForm({
   userId,
+  habitActions,
   onSuccess,
   onCancel,
   submitButtonText = 'Create Habit',
@@ -91,6 +97,7 @@ export default function AddHabitForm({
   const {
     control,
     handleSubmit,
+    reset,
     formState: { errors },
     watch,
   } = useForm<CreateHabitFormInput>({
@@ -106,7 +113,7 @@ export default function AddHabitForm({
       endTime: null,
       startDate: new Date(),
       endDate: undefined,
-      goalPerDay: null,
+      goalPerDay: 1,
       colorTag: null,
       icon: '✨',
       visibility: null,
@@ -124,6 +131,10 @@ export default function AddHabitForm({
     try {
       // Transform the form data using the Zod schema
       const transformedData = createHabitSchema.parse(data);
+
+      await habitActions.createHabit(transformedData);
+
+      reset();
       await onSuccess?.(transformedData);
     } catch (error) {
       console.error('Error submitting habit:', error);
@@ -134,19 +145,14 @@ export default function AddHabitForm({
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      className="flex-1"
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
-    >
       <ScrollView
-        className="flex-1 bg-white dark:bg-gray-950"
+        className="flex-1 bg-gray-50 dark:bg-gray-950 mb-22"
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
         <View className="px-5 py-6">
           {/* Header */}
-          <View className="mb-6">
+          <View className="mb-8">
             <Text className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
               Create New Habit
             </Text>
@@ -155,183 +161,265 @@ export default function AddHabitForm({
             </Text>
           </View>
 
-          {/* Icon Picker */}
-          <Controller
-            control={control}
-            name="icon"
-            render={({ field: { onChange, value } }) => (
-              <IconPicker 
-                label="Icon" 
-                value={value} 
-                onChange={onChange}
+          {/* Basic Information Section */}
+          <View className="mb-6">
+            <Text className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
+              Basic Info
+            </Text>
+            
+            {/* Icon Picker */}
+            <View className="mb-4">
+              <Controller
+                control={control}
+                name="icon"
+                render={({ field: { onChange, value } }) => (
+                  <IconPicker 
+                    label="Icon" 
+                    value={value} 
+                    onChange={onChange}
+                  />
+                )}
               />
-            )}
-          />
+            </View>
 
-          {/* Title */}
-          <InputField
-            control={control}
-            name="title"
-            label="Habit Name"
-            placeholder="e.g., Morning Meditation"
-            icon="sparkles"
-            error={errors.title?.message}
-          />
-
-          {/* Description */}
-          <InputField
-            control={control}
-            name="description"
-            label="Description"
-            placeholder="Add some details about this habit..."
-            icon="document-text"
-            error={errors.description?.message}
-            multiline
-            numberOfLines={4}
-          />
-
-          {/* Category */}
-          <Controller
-            control={control}
-            name="category"
-            render={({ field: { onChange, value } }) => (
-              <ChipSelector
-                label="Category"
-                options={CATEGORIES}
-                value={value}
-                onChange={onChange}
+            {/* Title */}
+            <View className="mb-4">
+              <InputField
+                control={control}
+                name="title"
+                label="Habit Name"
+                placeholder="e.g., Morning Meditation"
+                icon="sparkles"
+                error={errors.title?.message}
               />
-            )}
-          />
+            </View>
 
-          {/* Frequency */}
-          <Controller
-            control={control}
-            name="frequency"
-            render={({ field: { onChange, value } }) => (
-              <Select
-                label="Frequency"
-                value={value}
-                onValueChange={onChange}
-                options={FREQUENCIES}
-                placeholder="Select frequency"
-                error={errors.frequency?.message}
-                required
+            {/* Description */}
+            <View className="mb-4">
+              <InputField
+                control={control}
+                name="description"
+                label="Description"
+                placeholder="Add some details about this habit..."
+                icon="document-text"
+                error={errors.description?.message}
+                multiline
+                numberOfLines={4}
               />
-            )}
-          />
+            </View>
 
-          {/* Custom Days */}
-          {(frequency === 'custom' || frequency === 'weekly') && (
+            {/* Category */}
             <Controller
               control={control}
-              name="customFrequency"
+              name="category"
               render={({ field: { onChange, value } }) => (
                 <ChipSelector
-                  label="Select Days"
-                  options={WEEKDAYS}
-                  value={value?.split(', ') || []}
-                  onChange={(days: string[]) => onChange(days.join(', '))}
-                  multiSelect
+                  label="Category"
+                  options={CATEGORIES}
+                  value={value}
+                  onChange={onChange}
                 />
               )}
             />
-          )}
+          </View>
 
-          {/* Time Range */}
-          <View className="flex-row gap-3">
-            <View className="flex-1">
-              <InputField
+          {/* Schedule Section */}
+          <View className="mb-6">
+            <Text className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
+              Schedule
+            </Text>
+
+            {/* Frequency */}
+            <View className="mb-4">
+              <Controller
                 control={control}
-                name="startTime"
-                label="Start Time"
-                placeholder="09:00"
-                icon="time"
-                error={errors.startTime?.message}
+                name="frequency"
+                render={({ field: { onChange, value } }) => (
+                  <Select
+                    label="Frequency"
+                    value={value}
+                    onValueChange={onChange}
+                    options={FREQUENCIES}
+                    placeholder="Select frequency"
+                    error={errors.frequency?.message}
+                    required
+                  />
+                )}
               />
             </View>
-            <View className="flex-1">
-              <InputField
+
+            {/* Custom Days */}
+            {(frequency === 'custom' || frequency === 'weekly') && (
+              <View className="mb-4">
+                <Controller
+                  control={control}
+                  name="customFrequency"
+                  render={({ field: { onChange, value } }) => (
+                    <ChipSelector
+                      label="Select Days"
+                      options={WEEKDAYS}
+                      value={value?.split(', ') || []}
+                      onChange={(days: string[]) => onChange(days.join(', '))}
+                      multiSelect
+                    />
+                  )}
+                />
+              </View>
+            )}
+
+            {/* Time Range */}
+            <View className="flex-row gap-3 mb-4">
+              <View className="flex-1">
+                <Controller
+                  control={control}
+                  name="startTime"
+                  render={({ field: { onChange, value } }) => (
+                    <TimePicker
+                      label="Start Time"
+                      value={value}
+                      onChange={onChange}
+                      error={errors.startTime?.message}
+                      placeholder="Select start time"
+                    />
+                  )}
+                />
+              </View>
+              <View className="flex-1">
+                <Controller
+                  control={control}
+                  name="endTime"
+                  render={({ field: { onChange, value } }) => (
+                    <TimePicker
+                      label="End Time"
+                      value={value}
+                      onChange={onChange}
+                      error={errors.endTime?.message}
+                      placeholder="Select end time"
+                    />
+                  )}
+                />
+              </View>
+            </View>
+
+            {/* Start Date */}
+            <Controller
+              control={control}
+              name="startDate"
+              render={({ field: { onChange, value } }) => (
+                <DatePicker
+                  label="Start Date"
+                  value={value}
+                  onChange={onChange}
+                  error={errors.startDate?.message}
+                  required
+                />
+              )}
+            />
+          </View>
+
+          {/* Goals & Progress Section */}
+          <View className="mb-6">
+            <Text className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
+              Goals & Progress
+            </Text>
+
+            {/* Difficulty */}
+            <View className="mb-4">
+              <Controller
                 control={control}
-                name="endTime"
-                label="End Time"
-                placeholder="10:00"
-                icon="time"
-                error={errors.endTime?.message}
+                name="difficulty"
+                render={({ field: { onChange, value } }) => (
+                  <ChipSelector
+                    label="Difficulty Level"
+                    options={DIFFICULTIES}
+                    value={value}
+                    onChange={onChange}
+                  />
+                )}
               />
+            </View>
+
+            {/* Daily Goal */}
+            <View className="mb-4">
+              <Text className="text-gray-700 dark:text-white text-md my-3 font-semibold">
+                Daily Goal
+              </Text>
+              <Controller
+                control={control}
+                name="goalPerDay"
+                render={({ field: { onChange, value } }) => (
+                  <View className="flex-row items-center rounded-2xl bg-gray-200 dark:bg-slate-900 p-2 px-4 overflow-hidden">
+                    <Ionicons name="medal-outline" size={20} color="#9CA3AF" />
+                    <TextInput
+                      placeholder="1"
+                      value={value?.toString() ?? ''}
+                      onChangeText={(text: string) => {
+                        // Convert string to number, or null if empty
+                        if (text === '') {
+                          onChange(null);
+                        } else {
+                          // Only allow numeric characters
+                          const numericText = text.replace(/[^0-9]/g, '');
+                          if (numericText !== '') {
+                            const numValue = parseInt(numericText, 10);
+                            if (!isNaN(numValue) && numValue > 0) {
+                              onChange(numValue);
+                            }
+                          }
+                        }
+                      }}
+                      keyboardType="numeric"
+                      className="flex-1 ml-3 text-base text-gray-900 dark:text-white font-semibold tracking-wide"
+                      placeholderTextColor="#9CA3AF"
+                    />
+                  </View>
+                )}
+              />
+              {errors.goalPerDay?.message && (
+                <Text className="text-red-500 text-sm mt-1">{errors.goalPerDay.message}</Text>
+              )}
             </View>
           </View>
 
-          {/* Start Date */}
-          <Controller
-            control={control}
-            name="startDate"
-            render={({ field: { onChange, value } }) => (
-              <DatePicker
-                label="Start Date"
-                value={value}
-                onChange={onChange}
-                error={errors.startDate?.message}
-                required
+          {/* Additional Details Section */}
+          <View className="mb-6">
+            <Text className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
+              Additional Details
+            </Text>
+
+            {/* Location */}
+            <View className="mb-4">
+              <InputField
+                control={control}
+                name="locationTag"
+                label="Location (Optional)"
+                placeholder="e.g., Gym, Home, Office"
+                icon="location"
+                error={errors.locationTag?.message}
               />
-            )}
-          />
+            </View>
 
-          {/* Difficulty */}
-          <Controller
-            control={control}
-            name="difficulty"
-            render={({ field: { onChange, value } }) => (
-              <ChipSelector
-                label="Difficulty Level"
-                options={DIFFICULTIES}
-                value={value}
-                onChange={onChange}
-              />
-            )}
-          />
-
-          {/* Daily Goal */}
-          <InputField
-            control={control}
-            name="goalPerDay"
-            label="Daily Goal"
-            placeholder="1"
-            icon="target"
-            keyboardType="numeric"
-            error={errors.goalPerDay?.message}
-          />
-
-          {/* Location */}
-          <InputField
-            control={control}
-            name="locationTag"
-            label="Location (Optional)"
-            placeholder="e.g., Gym, Home, Office"
-            icon="location"
-            error={errors.locationTag?.message}
-          />
-
-          {/* Reward */}
-          <InputField
-            control={control}
-            name="rewardTag"
-            label="Reward (Optional)"
-            placeholder="e.g., Treat yourself to coffee"
-            icon="gift"
-            error={errors.rewardTag?.message}
-          />
+            {/* Reward */}
+            <InputField
+              control={control}
+              name="rewardTag"
+              label="Reward (Optional)"
+              placeholder="e.g., Treat yourself to coffee"
+              icon="gift"
+              error={errors.rewardTag?.message}
+            />
+          </View>
 
           {/* Action Buttons */}
-          <View className="flex-row gap-3 mt-6 mb-4">
+          <View className="flex-row gap-3 mt-2 mb-4">
             {showCancelButton && (
               <TouchableOpacity
                 onPress={onCancel}
                 disabled={isSubmitting}
-                className="flex-1 px-6 py-4 bg-gray-200 dark:bg-gray-800 rounded-2xl border-2 border-gray-300 dark:border-gray-700"
+                className="flex-1 px-6 py-4 bg-white dark:bg-gray-900 rounded-xl border-2 border-gray-300 dark:border-gray-700"
                 activeOpacity={0.7}
               >
-                <Text className="text-gray-700 dark:text-gray-300 font-bold text-center text-base">
+                <Text className="text-gray-700 dark:text-gray-300 font-semibold text-center text-base">
                   Cancel
                 </Text>
               </TouchableOpacity>
@@ -341,7 +429,7 @@ export default function AddHabitForm({
               onPress={handleSubmit(onSubmit)}
               disabled={isSubmitting}
               className={cn(
-                'flex-1 px-6 py-4 rounded-2xl',
+                'flex-1 px-6 py-4 rounded-xl',
                 isSubmitting ? 'bg-blue-400' : 'bg-blue-500',
                 !showCancelButton && 'w-full'
               )}
@@ -350,12 +438,12 @@ export default function AddHabitForm({
               {isSubmitting ? (
                 <View className="flex-row items-center justify-center">
                   <ActivityIndicator color="white" size="small" />
-                  <Text className="text-white font-bold text-center text-base ml-2">
+                  <Text className="text-white font-semibold text-center text-base ml-2">
                     Creating...
                   </Text>
                 </View>
               ) : (
-                <Text className="text-white font-bold text-center text-base">
+                <Text className="text-white font-semibold text-center text-base">
                   {submitButtonText}
                 </Text>
               )}
@@ -363,6 +451,11 @@ export default function AddHabitForm({
           </View>
         </View>
       </ScrollView>
-    </KeyboardAvoidingView>
+    // <KeyboardAvoidingView
+    //   behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    //   className="flex-1"
+    //   keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
+    // >
+    // </KeyboardAvoidingView>
   );
 }

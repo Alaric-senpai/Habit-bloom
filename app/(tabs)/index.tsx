@@ -15,11 +15,14 @@ import AddHabitFormReusableModal from '@/components/AddHabitFormReusableModal'
 import { SuccessRateGauge } from '@/components/ui/CircularGauge'
 import { Card, CardContent } from '@/components/ui/card'
 import DataSeedDropdowns from '@/components/DataSeedDropdowns'
+import ConfirmationModal, { ConfirmationModalRef } from '@/components/modals/ConfirmationModal'
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets()
   const { auth } = useAuth()
   const actions = useActions()
+
+  const modalRef = useRef<ConfirmationModalRef>(null)
 
   // State
   const [todayHabits, setTodayHabits] = useState<HabitSchemaType[]>([])
@@ -37,7 +40,7 @@ export default function HomeScreen() {
   const [greeting, setGreeting] = useState<string>('Hello')
 
   const user = auth?.user
-  const userName = user?.name?.trim().split(" ")[0] || 'User'
+  const userName = user?.name?.trim().split(" ")[1] || 'User'
   const userId = user?.id
 
   // Get greeting based on time
@@ -153,7 +156,7 @@ export default function HomeScreen() {
       >
 
         {/* Header Section */}
-        <View className='px-6 pt-4 pb-6'>
+        <View className='px-6  pb-6'>
           <View className='flex-row items-center justify-between mb-6'>
             <View className='flex-row items-center flex-1'>
               <Image source={Logo} style={{width: 40, height: 40}} className='mr-3' />
@@ -196,7 +199,8 @@ export default function HomeScreen() {
                   </DropdownMenuItem>
                   <DataSeedDropdowns 
                     userId={userId!} 
-                    onDataChange={loadData} 
+                    onDataChange={loadData}
+                    confirmationModalRef={modalRef} 
                   />
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -211,8 +215,8 @@ export default function HomeScreen() {
           </Text>
 
 
-          <View className='flex-row space-x-4'>
-          <Card>
+          <View className='flex-row gap-3 items-center justify-center'>
+          <Card className='w-1/2 h-22 min-h-22'>
             <CardContent>
                 <View className='flex-row items-center justify-between mb-2'>
                   <Target size={20} className='text-blue-600 dark:text-blue-400' />
@@ -226,22 +230,8 @@ export default function HomeScreen() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent>
-              <View className='flex-row items-center justify-between mb-2'>
-                <TrendingUp size={20} className='text-green-600 dark:text-green-400' />
-                <Text className='text-2xl font-bold text-green-600 dark:text-green-400'>
-                  {stats.successRate}%
-                </Text>
-              </View>
-              <Text className='text-sm text-green-700 dark:text-green-300 font-medium'>
-                Success Rate
-              </Text>
 
-            </CardContent>
-          </Card>
-
-          <Card>
+          <Card className='w-1/2 h-22'>
             <CardContent>
               <View className='flex-row items-center justify-between mb-2'>
                 <Award size={20} className='text-purple-600 dark:text-purple-400' />
@@ -284,6 +274,7 @@ export default function HomeScreen() {
               buttonText=""
               buttonClassName="bg-primary rounded-full p-2"
               buttonIcon={<Plus size={16} color="white" />}
+              confirmationModalRef={modalRef}
               formProps={{
                 onSuccess: async (habit) => {
                   console.log('New habit created:', habit);
@@ -307,6 +298,7 @@ export default function HomeScreen() {
               <AddHabitFormReusableModal
                 buttonText="Create First Habit"
                 buttonClassName="bg-primary px-6 py-3 rounded-full flex-row items-center gap-2"
+                confirmationModalRef={modalRef}
                 formProps={{
                   onSuccess: async (habit) => {
                     console.log('First habit created:', habit);
@@ -325,43 +317,6 @@ export default function HomeScreen() {
           )}
         </View>
 
-        {/* Weekly Progress */}
-        {weeklyProgress.length > 0 && (
-          <View className='px-6 mb-6'>
-            <Text className='text-lg font-semibold text-gray-900 dark:text-white mb-4'>
-              This Week
-            </Text>
-            <View className='bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700'>
-              <View className='flex-row items-center justify-between mb-3'>
-                <Text className='font-medium text-gray-900 dark:text-white'>
-                  Weekly Progress
-                </Text>
-                <Calendar size={20} className='text-gray-600 dark:text-gray-400' />
-              </View>
-              <View className='flex-row justify-between items-end mb-2' style={{ height: 80 }}>
-                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => {
-                  const count = weeklyProgress[index] || 0
-                  const maxCount = Math.max(...weeklyProgress, 1)
-                  const height = (count / maxCount) * 60 + 20
-                  
-                  return (
-                    <View key={day} className='items-center' style={{ flex: 1 }}>
-                      <View 
-                        className={`w-8 rounded-t ${
-                          count > 0 ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-700'
-                        }`}
-                        style={{ height }}
-                      />
-                      <Text className='text-xs text-gray-600 dark:text-gray-400 mt-2'>
-                        {day}
-                      </Text>
-                    </View>
-                  )
-                })}
-              </View>
-            </View>
-          </View>
-        )}
 
         {/* Recent Achievements */}
         {weekAchievements.length > 0 && (
@@ -401,7 +356,7 @@ export default function HomeScreen() {
             </View>
           </View>
         )}
-
+        <ConfirmationModal ref={modalRef} />
         <View className='min-h-24' />
       </ScrollView>
     </Container>

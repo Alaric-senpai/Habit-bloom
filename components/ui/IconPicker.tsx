@@ -87,6 +87,10 @@ export default function IconPicker({
         enableCategoryChangeAnimation
         enableCategoryChangeGesture
         
+        // style
+
+        defaultHeight={500}
+
         // Layout
         categoryPosition="top"
         

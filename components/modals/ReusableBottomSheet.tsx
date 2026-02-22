@@ -129,14 +129,18 @@ const ReusableBottomSheet = forwardRef<ReusableBottomSheetRef, ReusableBottomShe
       [backdropOpacity]
     );
 
-    // Default styles
+    // Default styles - HabitBloom theme
     const defaultBackgroundStyle = {
-      backgroundColor: isDark ? '#1f2937' : '#ffffff',
+      backgroundColor: isDark ? 'hsl(220, 20%, 14%)' : 'hsl(0, 0%, 100%)',
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
       ...backgroundStyle,
     };
 
     const defaultHandleIndicatorStyle = {
-      backgroundColor: isDark ? '#4b5563' : '#d1d5db',
+      backgroundColor: isDark ? 'hsl(165, 70%, 55%)' : 'hsl(165, 75%, 45%)',
+      width: 40,
+      height: 4,
       ...handleIndicatorStyle,
     };
 

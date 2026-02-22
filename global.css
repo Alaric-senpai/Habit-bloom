@@ -4,62 +4,116 @@
 
 @layer base {
   :root {
-    /* Light Theme — Calm and clean */
-    --background: 0 0% 99%; /* #F9FAFB */
-    --foreground: 240 10% 4%; /* #1E1E2D */
-    --card: 0 0% 100%; /* white cards */
-    --card-foreground: 240 10% 4%;
+    /* Light Theme — Fresh & Energetic for HabitBloom */
+    --background: 150 50% 98%; /* Soft mint white #F7FBF9 */
+    --foreground: 215 25% 15%; /* Deep slate #1F2937 */
+    
+    --card: 0 0% 100%; /* Pure white cards */
+    --card-foreground: 215 25% 15%;
+    
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 4%;
-    --primary: 256 94% 76%; /* #A78BFA lavender */
-    --primary-foreground: 0 0% 98%; /* almost white text */
-    --secondary: 240 11% 96%; /* #F3F4F6 light gray */
-    --secondary-foreground: 240 5% 26%; /* muted gray text */
-    --muted: 240 11% 96%;
-    --muted-foreground: 240 5% 45%;
-    --accent: 234 85% 68%; /* #6366F1 indigo accent */
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 85% 60%; /* #EF4444 red */
-    --border: 240 10% 90%; /* #E5E7EB */
-    --input: 240 10% 90%;
-    --ring: 252 94% 76%; /* lavender ring */
-    --radius: 0.625rem;
+    --popover-foreground: 215 25% 15%;
+    
+    --primary: 165 75% 45%; /* Vibrant teal/growth green #1FAB89 */
+    --primary-foreground: 0 0% 100%; /* white text */
+    
+    --secondary: 45 100% 65%; /* Sunny yellow #FFD966 */
+    --secondary-foreground: 215 25% 15%;
+    
+    --muted: 150 25% 94%; /* Light mint #EEF6F3 */
+    --muted-foreground: 215 15% 50%; /* Medium gray */
+    
+    --accent: 280 70% 60%; /* Purple achievement #B157E8 */
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 75% 55%; /* Warm red #DC4444 */
+    --destructive-foreground: 0 0% 100%;
+    
+    --success: 145 65% 50%; /* Fresh green #34C77B */
+    --success-foreground: 0 0% 100%;
+    
+    --warning: 35 95% 58%; /* Energetic orange #FF9F43 */
+    --warning-foreground: 0 0% 100%;
+    
+    --border: 150 20% 88%; /* Subtle green-gray #DBE8E3 */
+    --input: 150 20% 92%;
+    --ring: 165 75% 45%; /* Matches primary */
+    --radius: 0.75rem;
 
-    /* Charts & Tags */
-    --chart-1: 0 84% 63%;   /* Coral red #F87171 */
-    --chart-2: 152 63% 51%; /* Green #34D399 */
-    --chart-3: 217 91% 60%; /* Blue #60A5FA */
-    --chart-4: 45 97% 61%;  /* Amber #FBBF24 */
-    --chart-5: 330 79% 72%; /* Pink #F472B6 */
+    /* Gamification Colors */
+    --streak-fire: 15 90% 55%; /* Fire orange #F76C30 */
+    --xp-gold: 45 100% 55%; /* Gold #FFAA00 */
+    --level-purple: 265 75% 60%; /* Royal purple #8B5CF6 */
+    --achievement-blue: 210 80% 55%; /* Sky blue #3B9EF5 */
+
+    /* Charts & Progress */
+    --chart-1: 165 75% 45%;  /* Primary teal */
+    --chart-2: 145 65% 50%;  /* Success green */
+    --chart-3: 280 70% 60%;  /* Purple */
+    --chart-4: 45 100% 65%;  /* Yellow */
+    --chart-5: 335 85% 60%;  /* Pink #F25CA2 */
+    --chart-6: 210 80% 55%;  /* Blue */
   }
 
   .dark:root {
-    /* Dark Theme — Default for Hability */
-    --background: #050522; /* #1E1E2D */
-    --foreground: 0 0% 98%;
-    --card: 234 20% 19%; /* #2A2B3C */
-    --card-foreground: 0 0% 98%;
-    --popover: 234 20% 19%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 256 94% 76%; /* Lavender #A78BFA */
-    --primary-foreground: 240 5% 10%;
-    --secondary: 235 14% 22%; /* #32344A */
-    --secondary-foreground: 0 0% 98%;
-    --muted: 233 15% 24%; /* #3B3E54 */
-    --muted-foreground: 240 6% 70%; /* #9CA3AF */
-    --accent: 234 85% 68%; /* Indigo #6366F1 */
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 85% 63%; /* Red #EF4444 */
-    --border: 231 9% 32%; /* #44475A */
-    --input: 231 9% 32%;
-    --ring: 256 94% 76%; /* #A78BFA */
-    --radius: 0.625rem;
+    /* Dark Theme — Comfortable & Engaging for Night Owls */
+    --background: 220 25% 10%; /* Rich dark blue #141820 */
+    --foreground: 150 15% 92%; /* Soft white #E8F0EC */
+    
+    --card: 220 20% 14%; /* Card dark blue #1C2128 */
+    --card-foreground: 150 15% 92%;
+    
+    --popover: 220 20% 14%;
+    --popover-foreground: 150 15% 92%;
+    
+    --primary: 165 70% 55%; /* Bright teal #3DCCAA */
+    --primary-foreground: 220 25% 10%;
+    
+    --secondary: 45 95% 60%; /* Warm gold #FFCC33 */
+    --secondary-foreground: 220 25% 10%;
+    
+    --muted: 220 18% 20%; /* Muted dark blue #282E38 */
+    --muted-foreground: 150 8% 65%; /* Medium light gray */
+    
+    --accent: 280 75% 65%; /* Vibrant purple #C77DFF */
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 70% 60%; /* Softer red #E76F6F */
+    --destructive-foreground: 0 0% 100%;
+    
+    --success: 145 60% 55%; /* Bright green #42D98D */
+    --success-foreground: 0 0% 100%;
+    
+    --warning: 35 90% 60%; /* Bright orange #FFAA5C */
+    --warning-foreground: 0 0% 100%;
+    
+    --border: 220 15% 24%; /* Border gray-blue #343B47 */
+    --input: 220 15% 24%;
+    --ring: 165 70% 55%; /* Matches primary */
+    --radius: 0.75rem;
 
-    /* Charts & Tags */
-    --chart-1: 0 84% 63%;   /* Coral red #F87171 */
-    --chart-2: 152 63% 51%; /* Green #34D399 */
-    --chart-3: 217 91% 60%; /* Blue #60A5FA */
-    --chart-4: 45 97% 61%;  /* Amber #FBBF24 */
-    --chart-5: 330 79% 72%; /* Pink #F472B6 */
+    /* Gamification Colors */
+    --streak-fire: 15 85% 60%; /* Bright fire orange #FF834D */
+    --xp-gold: 45 100% 60%; /* Bright gold #FFBB33 */
+    --level-purple: 265 80% 65%; /* Bright purple #9F7AEA */
+    --achievement-blue: 210 75% 60%; /* Bright sky blue #52A9F7 */
+
+    /* Charts & Progress */
+    --chart-1: 165 70% 55%;  /* Primary teal */
+    --chart-2: 145 60% 55%;  /* Success green */
+    --chart-3: 280 75% 65%;  /* Purple */
+    --chart-4: 45 95% 60%;   /* Gold */
+    --chart-5: 335 80% 65%;  /* Pink #FF6BB5 */
+    --chart-6: 210 75% 60%;  /* Blue */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
   }
 }

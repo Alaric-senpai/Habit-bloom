@@ -8,37 +8,24 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'nativewind';
 import { useEffect } from 'react';
-import { Platform, ActivityIndicator, View, Text } from 'react-native';
-import * as NavigationBar from 'expo-navigation-bar';
+import { ActivityIndicator, View } from 'react-native';
 import { initializeDatabase } from '@/database/db';
-import * as splashScreen from 'expo-splash-screen'
 import { Image } from 'expo-image';
 import { Logo } from '@/constants/images';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
-splashScreen.preventAutoHideAsync()
 export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary,
 } from 'expo-router';
 
 export default function RootLayout() {
-  const { colorScheme, setColorScheme } = useColorScheme();
+  const { colorScheme } = useColorScheme();
 
-  useEffect(()=>{
-    splashScreen.hideAsync()
-  },[])
 
-  useEffect(() => {
-    if (colorScheme === 'dark') {
-      setColorScheme('light');
-    }
-  }, [colorScheme]);
 
   console.log('Active color scheme', colorScheme)
-
   useEffect(() => {
     const RunMigrations = async () => {
       try {
@@ -66,7 +53,6 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      {/* <SafeAreaView></SafeAreaView> */}
       <BottomSheetModalProvider>
         <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
           <HabitBloomProvider>
@@ -131,10 +117,7 @@ function Routes() {
         <Stack.Screen name="habits/[id]" options={{headerShown: false}} />
       </Stack.Protected>
 
-      
-      {/* Index route that handles initial navigation */}
-      
-      {/* Protected Tab Routes */}
+
     </Stack>
   );
 }

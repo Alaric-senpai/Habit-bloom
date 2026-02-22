@@ -41,6 +41,19 @@ module.exports = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        success: {
+          DEFAULT: 'hsl(var(--success))',
+          foreground: 'hsl(var(--success-foreground))',
+        },
+        warning: {
+          DEFAULT: 'hsl(var(--warning))',
+          foreground: 'hsl(var(--warning-foreground))',
+        },
+        // Gamification colors
+        streak: 'hsl(var(--streak-fire))',
+        xp: 'hsl(var(--xp-gold))',
+        level: 'hsl(var(--level-purple))',
+        achievement: 'hsl(var(--achievement-blue))',
       },
       borderRadius: {
         lg: 'var(--radius)',

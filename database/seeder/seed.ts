@@ -728,3 +728,39 @@ const getRandomMoodNote = (moodLevel: number): string => {
     return lowMoodNotes[Math.floor(Math.random() * lowMoodNotes.length)];
   }
 };
+
+/**
+ * Clear all seed data from the database
+ * @param userId - The ID of the user to clear seed data for
+ */
+export const clearSeedData = async (userId: number) => {
+  try {
+    console.log('🧹 Clearing seed data...');
+    const database = db();
+
+    // Delete in reverse order to respect foreign key constraints
+    await database.delete(notificationsTable).where(eq(notificationsTable.userId, userId));
+    console.log('✅ Notifications cleared');
+
+    await database.delete(achievementsTable).where(eq(achievementsTable.userId, userId));
+    console.log('✅ Achievements cleared');
+
+    await database.delete(moodsTable).where(eq(moodsTable.userId, userId));
+    console.log('✅ Moods cleared');
+
+    await database.delete(habitLogsTable).where(eq(habitLogsTable.userId, userId));
+    console.log('✅ Habit logs cleared');
+
+    await database.delete(habitsTable).where(eq(habitsTable.userId, userId));
+    console.log('✅ Habits cleared');
+
+    await database.delete(userAnswersTable).where(eq(userAnswersTable.userId, userId));
+    console.log('✅ User answers cleared');
+
+    console.log('🎉 All seed data cleared successfully!');
+    return { success: true };
+  } catch (error) {
+    console.error('❌ Error clearing seed data:', error);
+    throw error;
+  }
+};

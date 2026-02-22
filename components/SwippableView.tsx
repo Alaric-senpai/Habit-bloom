@@ -195,7 +195,6 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   childContainer: {
-    backgroundColor: "#fff",
     zIndex: 2,
   },
   leftAction: {

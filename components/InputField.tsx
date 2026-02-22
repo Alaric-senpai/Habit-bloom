@@ -38,37 +38,37 @@ export default function InputField({
 
   return (
     <View className="mb-4">
-      <Text className="text-gray-700 dark:text-white text-md my-3 font-semibold">
+      <Text className="text-foreground text-sm my-3 font-bold">
         {label}
       </Text>
       <Controller
         control={control}
         name={name}
         render={({ field: { onChange, value } }) => (
-          <View className="flex-row items-center rounded-2xl bg-gray-200 dark:bg-slate-900 p-2 px-4 overflow-hidden">
-            <Ionicons name={icon} size={20} color="#9CA3AF" />
+          <View className="flex-row items-center rounded-2xl bg-card border-2 border-border p-3 px-4">
+            <Ionicons name={icon} size={22} color="hsl(165, 75%, 45%)" />
             <TextInput
               placeholder={placeholder}
               value={value}
               onChangeText={onChange}
               secureTextEntry={secureTextEntry}
-              className="flex-1 ml-3 text-base text-gray-900 dark:text-white font-semibold tracking-wide"
-              placeholderTextColor="#9CA3AF"
+              className="flex-1 ml-3 text-base text-foreground font-medium"
+              placeholderTextColor="hsl(150, 8%, 65%)"
               {...rest}
             />
             {showToggle && (
               <TouchableOpacity onPress={toggleSecure}>
                 <Ionicons
                   name={secureTextEntry ? 'eye-off-outline' : 'eye-outline'}
-                  size={20}
-                  color="#9CA3AF"
+                  size={22}
+                  color="hsl(165, 75%, 45%)"
                 />
               </TouchableOpacity>
             )}
           </View>
         )}
       />
-      {error && <Text className="text-red-500 text-sm mt-1">{error}</Text>}
+      {error && <Text className="text-destructive text-sm mt-2 font-medium">{error}</Text>}
     </View>
   );
 }

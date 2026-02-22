@@ -8,36 +8,24 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'nativewind';
 import { useEffect } from 'react';
-import { Platform, ActivityIndicator, View, Text } from 'react-native';
-import * as NavigationBar from 'expo-navigation-bar';
+import { ActivityIndicator, View } from 'react-native';
 import { initializeDatabase } from '@/database/db';
-import * as splashScreen from 'expo-splash-screen'
 import { Image } from 'expo-image';
 import { Logo } from '@/constants/images';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 
-splashScreen.preventAutoHideAsync()
 export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary,
 } from 'expo-router';
 
 export default function RootLayout() {
-  const { colorScheme, setColorScheme } = useColorScheme();
+  const { colorScheme } = useColorScheme();
 
-  useEffect(()=>{
-    splashScreen.hideAsync()
-  },[])
 
-  useEffect(() => {
-    if (colorScheme === 'dark') {
-      setColorScheme('light');
-    }
-  }, [colorScheme]);
 
   console.log('Active color scheme', colorScheme)
-
   useEffect(() => {
     const RunMigrations = async () => {
       try {
@@ -96,21 +84,21 @@ function Routes() {
 
   console.log('Current auth state', auth)
 
+  console.log('initalization state', isInitializing)
+
   const isAuthenticated = auth.isAuthenticated
 
   if(isInitializing){
     return (
-    <View className="flex-1 items-center justify-center bg-primary">
-      <View className="items-center">
-        <View className="w-24 h-24  rounded-3xl items-center justify-center mb-6">
-            <Image source={Logo} className='w-full h-full' style={{width: 120, height: 120}} />
-        </View>
-        <ActivityIndicator size="large" color="white" />
-        <Text className="text-white text-lg font-semibold mt-4">
-            <ActivityIndicator size={'large'} color={'teal'} />
-        </Text>
-      </View>
+    <View className="flex-1 justify-between items-center py-16 bg-white">
+      <Image
+        source={Logo}
+        style={{ width: 120, height: 120, borderRadius: 24 }}
+        contentFit="contain"
+      />
+      <ActivityIndicator size="large" color="teal" />
     </View>
+
     )
   }
 
@@ -126,12 +114,10 @@ function Routes() {
       {/* Protected Routes - accessible when authenticated */}
       <Stack.Protected guard={isAuthenticated}>
         <Stack.Screen name="(tabs)" options={{headerShown: false}} />
+        <Stack.Screen name="habits/[id]" options={{headerShown: false}} />
       </Stack.Protected>
 
-      
-      {/* Index route that handles initial navigation */}
-      
-      {/* Protected Tab Routes */}
+
     </Stack>
   );
 }

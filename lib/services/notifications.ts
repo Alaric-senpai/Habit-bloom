@@ -31,6 +31,7 @@ export class NotificationService {
   private notificationActions?: NotificationActions;
 
   constructor() {
+    if(!Device.isDevice) return
     // Set up default notification channel for Android
     if (Platform.OS === 'android') {
       this.setupAndroidNotificationChannel();

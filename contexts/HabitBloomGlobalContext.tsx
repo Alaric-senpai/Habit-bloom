@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode, useMemo } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode, useMemo, useRef } from 'react';
 import { calendarService, notificationService, updatesService, networkService, clipboardService, hapticService } from '@/lib/services';
 import { NetworkStatus } from '@/lib/services/network';
 import { LoginSchemaType, RegisterSchemaType, sanitizedUserSchemaType } from '@/types';
@@ -186,13 +186,21 @@ export function HabitBloomProvider({ children }: { children: ReactNode }) {
   // Initialization State
   // ========================================
   const [isInitializing, setIsInitializing] = useState(true);
+  const hasInitialized = useRef(false);
 
   // ========================================
   // Initialize Services
   // ========================================
   useEffect(() => {
+    // Prevent re-initialization on hot reloads in development
+    if (hasInitialized.current) {
+      return;
+    }
+
     const initialize = async () => {
       try {
+        hasInitialized.current = true;
+
   // Check stored auth
         const userid = await storage.getNumber('activeUserID');
 
@@ -280,12 +288,6 @@ export function HabitBloomProvider({ children }: { children: ReactNode }) {
           hapticService.setEnabled(true);
         }
 
-        // Check if app was opened from notification
-        const lastNotification = await notificationService.getLastNotificationResponseAsync();
-        if (lastNotification) {
-          console.log('App opened from notification', lastNotification);
-        }
-
         setIsInitializing(false);
 
         return () => {
@@ -296,13 +298,12 @@ export function HabitBloomProvider({ children }: { children: ReactNode }) {
         };
       } catch (error) {
         console.error('Error initializing HabitBloom:', error);
-      }finally{
         setIsInitializing(false);
       }
     };
 
     initialize();
-  }, [actions.user]);
+  }, []); // Empty dependency array - only run once
 
   // ========================================
   // Auth Methods

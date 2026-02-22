@@ -1,23 +1,20 @@
-// components/forms/AddHabitForm.tsx
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  ActivityIndicator,
-  Alert,
-  TextInput,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, ScrollView, ActivityIndicator, TextInput } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createHabitSchema, type CreateHabitSchemaType } from '@/types';
+import type { HabitActions } from '@/database/actions';
+import { Button } from '@/components/ui/button';
+import { Text as UIText } from '@/components/ui/text';
+import { cn } from '@/lib/utils';
+import { Ionicons } from '@expo/vector-icons';
 import InputField from '../InputField';
+import DatePicker from '../ui/DatePicker';
+import TimePicker from '../ui/TimePicker';
+import IconPicker from '../ui/IconPicker';
+import ChipSelector from '../ui/ChipSelector';
 
-// Create a type for form input that accepts null values (before Zod transforms)
+// Form input type
 type CreateHabitFormInput = {
   userId: number;
   title: string;
@@ -38,13 +35,6 @@ type CreateHabitFormInput = {
   locationTag: string | null;
   inCalendar: boolean | null;
 };
-import Select from '../ui/select';
-import DatePicker from '../ui/DatePicker';
-import TimePicker from '../ui/TimePicker';
-import IconPicker from '../ui/IconPicker';
-import ChipSelector from '../ui/ChipSelector';
-import { cn } from '@/lib/utils';
-import type { HabitActions } from '@/database/actions';
 
 const CATEGORIES = [
   'Health',
@@ -60,17 +50,17 @@ const CATEGORIES = [
 ];
 
 const FREQUENCIES = [
-  { value: 'daily', label: 'Daily' },
-  { value: 'weekly', label: 'Weekly' },
-  { value: 'custom', label: 'Custom Days' },
-  { value: 'monthly', label: 'Monthly' },
-  { value: 'once', label: 'One Time' },
+  'Daily',
+  'Weekly',
+  'Custom Days',
+  'Monthly',
+  'One Time',
 ];
 
 const DIFFICULTIES = [
-  { value: 'easy', label: 'Easy' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'hard', label: 'Hard' },
+  'Easy',
+  'Medium',
+  'Hard',
 ];
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -129,333 +119,320 @@ export default function AddHabitForm({
   const onSubmit = async (data: CreateHabitFormInput) => {
     setIsSubmitting(true);
     try {
-      // Transform the form data using the Zod schema
-      const transformedData = createHabitSchema.parse(data);
+      // Map display values back to schema values
+      let mappedData = { ...data };
+      
+      // Map frequency display to schema value
+      const frequencyMap: Record<string, string> = {
+        'Daily': 'daily',
+        'Weekly': 'weekly',
+        'Custom Days': 'custom',
+        'Monthly': 'monthly',
+        'One Time': 'once',
+      };
+      
+      if (data.frequency) {
+        mappedData.frequency = frequencyMap[data.frequency] as any || data.frequency as any;
+      }
+      
+      // Map difficulty display to schema value
+      if (data.difficulty) {
+        mappedData.difficulty = data.difficulty.toLowerCase() as any;
+      }
 
+      const transformedData = createHabitSchema.parse(mappedData);
       await habitActions.createHabit(transformedData);
-
       reset();
       await onSuccess?.(transformedData);
     } catch (error) {
       console.error('Error submitting habit:', error);
-      Alert.alert('Error', 'Failed to create habit. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-      <ScrollView
-        className="flex-1 bg-gray-50 dark:bg-gray-950 mb-22"
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View className="px-5 py-6">
-          {/* Header */}
-          <View className="mb-8">
-            <Text className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              Create New Habit
-            </Text>
-            <Text className="text-base text-gray-600 dark:text-gray-400">
-              Build better habits, one step at a time ✨
-            </Text>
-          </View>
+    <ScrollView
+      className='flex-1 bg-background'
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps='handled'
+    >
+      <View className='px-6 py-6'>
+        {/* Header */}
+        <View className='mb-8'>
+          <Text className='text-foreground text-3xl font-extrabold mb-2'>
+            Create New Habit
+          </Text>
+          <Text className='text-muted-foreground text-base'>
+            Build better habits, one step at a time 🌱
+          </Text>
+        </View>
 
-          {/* Basic Information Section */}
-          <View className="mb-6">
-            <Text className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
-              Basic Info
-            </Text>
-            
-            {/* Icon Picker */}
-            <View className="mb-4">
-              <Controller
-                control={control}
-                name="icon"
-                render={({ field: { onChange, value } }) => (
-                  <IconPicker 
-                    label="Icon" 
-                    value={value} 
-                    onChange={onChange}
-                  />
-                )}
+        {/* Icon Picker */}
+        <View className='mb-6'>
+          <Controller
+            control={control}
+            name='icon'
+            render={({ field: { onChange, value } }) => (
+              <IconPicker 
+                label='Choose Icon' 
+                value={value} 
+                onChange={onChange}
               />
-            </View>
-
-            {/* Title */}
-            <View className="mb-4">
-              <InputField
-                control={control}
-                name="title"
-                label="Habit Name"
-                placeholder="e.g., Morning Meditation"
-                icon="sparkles"
-                error={errors.title?.message}
-              />
-            </View>
-
-            {/* Description */}
-            <View className="mb-4">
-              <InputField
-                control={control}
-                name="description"
-                label="Description"
-                placeholder="Add some details about this habit..."
-                icon="document-text"
-                error={errors.description?.message}
-                multiline
-                numberOfLines={4}
-              />
-            </View>
-
-            {/* Category */}
-            <Controller
-              control={control}
-              name="category"
-              render={({ field: { onChange, value } }) => (
-                <ChipSelector
-                  label="Category"
-                  options={CATEGORIES}
-                  value={value}
-                  onChange={onChange}
-                />
-              )}
-            />
-          </View>
-
-          {/* Schedule Section */}
-          <View className="mb-6">
-            <Text className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
-              Schedule
-            </Text>
-
-            {/* Frequency */}
-            <View className="mb-4">
-              <Controller
-                control={control}
-                name="frequency"
-                render={({ field: { onChange, value } }) => (
-                  <Select
-                    label="Frequency"
-                    value={value}
-                    onValueChange={onChange}
-                    options={FREQUENCIES}
-                    placeholder="Select frequency"
-                    error={errors.frequency?.message}
-                    required
-                  />
-                )}
-              />
-            </View>
-
-            {/* Custom Days */}
-            {(frequency === 'custom' || frequency === 'weekly') && (
-              <View className="mb-4">
-                <Controller
-                  control={control}
-                  name="customFrequency"
-                  render={({ field: { onChange, value } }) => (
-                    <ChipSelector
-                      label="Select Days"
-                      options={WEEKDAYS}
-                      value={value?.split(', ') || []}
-                      onChange={(days: string[]) => onChange(days.join(', '))}
-                      multiSelect
-                    />
-                  )}
-                />
-              </View>
             )}
+          />
+        </View>
 
-            {/* Time Range */}
-            <View className="flex-row gap-3 mb-4">
-              <View className="flex-1">
-                <Controller
-                  control={control}
-                  name="startTime"
-                  render={({ field: { onChange, value } }) => (
-                    <TimePicker
-                      label="Start Time"
-                      value={value}
-                      onChange={onChange}
-                      error={errors.startTime?.message}
-                      placeholder="Select start time"
-                    />
-                  )}
-                />
-              </View>
-              <View className="flex-1">
-                <Controller
-                  control={control}
-                  name="endTime"
-                  render={({ field: { onChange, value } }) => (
-                    <TimePicker
-                      label="End Time"
-                      value={value}
-                      onChange={onChange}
-                      error={errors.endTime?.message}
-                      placeholder="Select end time"
-                    />
-                  )}
-                />
-              </View>
-            </View>
-
-            {/* Start Date */}
-            <Controller
-              control={control}
-              name="startDate"
-              render={({ field: { onChange, value } }) => (
-                <DatePicker
-                  label="Start Date"
-                  value={value}
-                  onChange={onChange}
-                  error={errors.startDate?.message}
-                  required
-                />
-              )}
-            />
-          </View>
-
-          {/* Goals & Progress Section */}
-          <View className="mb-6">
-            <Text className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
-              Goals & Progress
-            </Text>
-
-            {/* Difficulty */}
-            <View className="mb-4">
-              <Controller
-                control={control}
-                name="difficulty"
-                render={({ field: { onChange, value } }) => (
-                  <ChipSelector
-                    label="Difficulty Level"
-                    options={DIFFICULTIES}
-                    value={value}
-                    onChange={onChange}
-                  />
-                )}
-              />
-            </View>
-
-            {/* Daily Goal */}
-            <View className="mb-4">
-              <Text className="text-gray-700 dark:text-white text-md my-3 font-semibold">
-                Daily Goal
-              </Text>
-              <Controller
-                control={control}
-                name="goalPerDay"
-                render={({ field: { onChange, value } }) => (
-                  <View className="flex-row items-center rounded-2xl bg-gray-200 dark:bg-slate-900 p-2 px-4 overflow-hidden">
-                    <Ionicons name="medal-outline" size={20} color="#9CA3AF" />
-                    <TextInput
-                      placeholder="1"
-                      value={value?.toString() ?? ''}
-                      onChangeText={(text: string) => {
-                        // Convert string to number, or null if empty
-                        if (text === '') {
-                          onChange(null);
-                        } else {
-                          // Only allow numeric characters
-                          const numericText = text.replace(/[^0-9]/g, '');
-                          if (numericText !== '') {
-                            const numValue = parseInt(numericText, 10);
-                            if (!isNaN(numValue) && numValue > 0) {
-                              onChange(numValue);
-                            }
-                          }
-                        }
-                      }}
-                      keyboardType="numeric"
-                      className="flex-1 ml-3 text-base text-gray-900 dark:text-white font-semibold tracking-wide"
-                      placeholderTextColor="#9CA3AF"
-                    />
-                  </View>
-                )}
-              />
-              {errors.goalPerDay?.message && (
-                <Text className="text-red-500 text-sm mt-1">{errors.goalPerDay.message}</Text>
-              )}
-            </View>
-          </View>
-
-          {/* Additional Details Section */}
-          <View className="mb-6">
-            <Text className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
-              Additional Details
-            </Text>
-
-            {/* Location */}
-            <View className="mb-4">
-              <InputField
-                control={control}
-                name="locationTag"
-                label="Location (Optional)"
-                placeholder="e.g., Gym, Home, Office"
-                icon="location"
-                error={errors.locationTag?.message}
-              />
-            </View>
-
-            {/* Reward */}
+        {/* Basic Information */}
+        <View className='mb-6'>
+          <Text className='text-muted-foreground text-xs font-bold uppercase tracking-wider mb-4'>
+            Basic Information
+          </Text>
+          
+          <View className='mb-4'>
             <InputField
               control={control}
-              name="rewardTag"
-              label="Reward (Optional)"
-              placeholder="e.g., Treat yourself to coffee"
-              icon="gift"
-              error={errors.rewardTag?.message}
+              name='title'
+              label='Habit Name'
+              placeholder='e.g., Morning Meditation'
+              icon='sparkles'
+              error={errors.title?.message}
             />
           </View>
 
-          {/* Action Buttons */}
-          <View className="flex-row gap-3 mt-2 mb-4">
-            {showCancelButton && (
-              <TouchableOpacity
-                onPress={onCancel}
-                disabled={isSubmitting}
-                className="flex-1 px-6 py-4 bg-white dark:bg-gray-900 rounded-xl border-2 border-gray-300 dark:border-gray-700"
-                activeOpacity={0.7}
-              >
-                <Text className="text-gray-700 dark:text-gray-300 font-semibold text-center text-base">
-                  Cancel
-                </Text>
-              </TouchableOpacity>
-            )}
+          <View className='mb-4'>
+            <InputField
+              control={control}
+              name='description'
+              label='Description (Optional)'
+              placeholder='Add some details about this habit...'
+              icon='document-text'
+              error={errors.description?.message}
+              multiline
+              numberOfLines={3}
+            />
+          </View>
 
-            <TouchableOpacity
-              onPress={handleSubmit(onSubmit)}
-              disabled={isSubmitting}
-              className={cn(
-                'flex-1 px-6 py-4 rounded-xl',
-                isSubmitting ? 'bg-blue-400' : 'bg-blue-500',
-                !showCancelButton && 'w-full'
+          <Controller
+            control={control}
+            name='category'
+            render={({ field: { onChange, value } }) => (
+              <ChipSelector
+                label='Category'
+                options={CATEGORIES}
+                value={value}
+                onChange={onChange}
+              />
+            )}
+          />
+        </View>
+
+        {/* Schedule */}
+        <View className='mb-6'>
+          <Text className='text-muted-foreground text-xs font-bold uppercase tracking-wider mb-4'>
+            Schedule
+          </Text>
+
+          <Controller
+            control={control}
+            name='frequency'
+            render={({ field: { onChange, value } }) => (
+              <ChipSelector
+                label='Frequency'
+                options={FREQUENCIES}
+                value={value}
+                onChange={onChange}
+              />
+            )}
+          />
+
+          {(frequency === 'custom' || frequency === 'weekly' || frequency === 'Custom Days' || frequency === 'Weekly') && (
+            <View className='mb-4'>
+              <Controller
+                control={control}
+                name='customFrequency'
+                render={({ field: { onChange, value } }) => (
+                  <ChipSelector
+                    label='Select Days'
+                    options={WEEKDAYS}
+                    value={value?.split(', ') || []}
+                    onChange={(days: string[]) => onChange(days.join(', '))}
+                    multiSelect
+                  />
+                )}
+              />
+            </View>
+          )}
+
+          <View className='flex-row gap-3 mb-4'>
+            <View className='flex-1'>
+              <Controller
+                control={control}
+                name='startTime'
+                render={({ field: { onChange, value } }) => (
+                  <TimePicker
+                    label='Start Time'
+                    value={value}
+                    onChange={onChange}
+                    error={errors.startTime?.message}
+                    placeholder='When?'
+                  />
+                )}
+              />
+            </View>
+            <View className='flex-1'>
+              <Controller
+                control={control}
+                name='endTime'
+                render={({ field: { onChange, value } }) => (
+                  <TimePicker
+                    label='End Time'
+                    value={value}
+                    onChange={onChange}
+                    error={errors.endTime?.message}
+                    placeholder='Until?'
+                  />
+                )}
+              />
+            </View>
+          </View>
+
+          <Controller
+            control={control}
+            name='startDate'
+            render={({ field: { onChange, value } }) => (
+              <DatePicker
+                label='Start Date'
+                value={value}
+                onChange={onChange}
+                error={errors.startDate?.message}
+                required
+              />
+            )}
+          />
+        </View>
+
+        {/* Goals */}
+        <View className='mb-6'>
+          <Text className='text-muted-foreground text-xs font-bold uppercase tracking-wider mb-4'>
+            Goals & Progress
+          </Text>
+
+          <View className='mb-4'>
+            <Controller
+              control={control}
+              name='difficulty'
+              render={({ field: { onChange, value } }) => (
+                <ChipSelector
+                  label='Difficulty Level'
+                  options={DIFFICULTIES}
+                  value={value}
+                  onChange={onChange}
+                />
               )}
-              activeOpacity={0.8}
-            >
-              {isSubmitting ? (
-                <View className="flex-row items-center justify-center">
-                  <ActivityIndicator color="white" size="small" />
-                  <Text className="text-white font-semibold text-center text-base ml-2">
-                    Creating...
-                  </Text>
+            />
+          </View>
+
+          <View className='mb-4'>
+            <Text className='text-foreground text-sm font-semibold mb-2'>
+              Daily Goal
+            </Text>
+            <Controller
+              control={control}
+              name='goalPerDay'
+              render={({ field: { onChange, value } }) => (
+                <View className='flex-row items-center rounded-2xl bg-card border-2 border-border p-3 px-4'>
+                  <Ionicons name='medal-outline' size={22} color='hsl(165, 75%, 45%)' />
+                  <TextInput
+                    placeholder='1'
+                    value={value?.toString() ?? ''}
+                    onChangeText={(text) => {
+                      if (text === '') {
+                        onChange(null);
+                      } else {
+                        const numericText = text.replace(/[^0-9]/g, '');
+                        if (numericText !== '') {
+                          const numValue = parseInt(numericText, 10);
+                          if (!isNaN(numValue) && numValue > 0) {
+                            onChange(numValue);
+                          }
+                        }
+                      }
+                    }}
+                    keyboardType='numeric'
+                    className='flex-1 ml-3 text-base text-foreground font-medium'
+                    placeholderTextColor='hsl(150, 8%, 65%)'
+                  />
                 </View>
-              ) : (
-                <Text className="text-white font-semibold text-center text-base">
-                  {submitButtonText}
-                </Text>
               )}
-            </TouchableOpacity>
+            />
+            {errors.goalPerDay?.message && (
+              <Text className='text-destructive text-sm mt-2 font-medium'>
+                {errors.goalPerDay.message}
+              </Text>
+            )}
           </View>
         </View>
-      </ScrollView>
-    // <KeyboardAvoidingView
-    //   behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    //   className="flex-1"
-    //   keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
-    // >
-    // </KeyboardAvoidingView>
+
+        {/* Additional Details */}
+        <View className='mb-6'>
+          <Text className='text-muted-foreground text-xs font-bold uppercase tracking-wider mb-4'>
+            Additional Details (Optional)
+          </Text>
+
+          <View className='mb-4'>
+            <InputField
+              control={control}
+              name='locationTag'
+              label='Location'
+              placeholder='e.g., Gym, Home, Office'
+              icon='location'
+              error={errors.locationTag?.message}
+            />
+          </View>
+
+          <InputField
+            control={control}
+            name='rewardTag'
+            label='Reward'
+            placeholder='e.g., Treat yourself to coffee'
+            icon='gift'
+            error={errors.rewardTag?.message}
+          />
+        </View>
+
+        {/* Action Buttons */}
+        <View className='flex-row gap-3 mt-2 mb-4'>
+          {showCancelButton && (
+            <Button
+              variant='outline'
+              size='lg'
+              onPress={onCancel}
+              disabled={isSubmitting}
+              className='flex-1'
+            >
+              <UIText>Cancel</UIText>
+            </Button>
+          )}
+
+          <Button
+            variant='default'
+            size='lg'
+            onPress={handleSubmit(onSubmit)}
+            disabled={isSubmitting}
+            className={cn('flex-1', !showCancelButton && 'w-full')}
+          >
+            {isSubmitting ? (
+              <>
+                <ActivityIndicator color='white' size='small' />
+                <UIText className='text-primary-foreground ml-2'>Creating...</UIText>
+              </>
+            ) : (
+              <UIText className='text-primary-foreground font-bold'>{submitButtonText}</UIText>
+            )}
+          </Button>
+        </View>
+      </View>
+    </ScrollView>
   );
 }

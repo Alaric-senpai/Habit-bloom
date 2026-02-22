@@ -1,53 +1,79 @@
 import { View, Text, Pressable } from 'react-native'
-import React, { useState, useEffect } from 'react'
-import { MotiView } from 'moti'
-import { ChevronRight } from 'lucide-react-native';
+import React from 'react'
+import { ChevronRight } from 'lucide-react-native'
 
-type props = {
-    label: string;
-    description?: string;
-    onPress: () => void;
-    icon?: React.ReactNode;
-    disabled?: boolean;
-    variant?: 'default' | 'danger' | 'warning';
+type ProfileLinkProps = {
+  label: string
+  description?: string
+  onPress: () => void
+  icon?: React.ReactNode
+  disabled?: boolean
+  variant?: 'default' | 'danger' | 'warning'
 }
 
 export default function ProfileLink({ 
-    label, 
-    description, 
-    onPress, 
-    icon,
-    disabled = false,
-    variant = 'default'
-}: props) {
-    const [pressedIn, setPressedIn] = useState<boolean>(false)
-    const [mounted, setMounted] = useState(false)
-
-    useEffect(() => {
-        // Trigger mount animation
-        const timer = setTimeout(() => setMounted(true), 50)
-        return () => clearTimeout(timer)
-    }, [])
-
-    const handleOnPress = () => {
-        if (disabled) return;
-        if (onPress) {
-            onPress()
-        }
+  label, 
+  description, 
+  onPress, 
+  icon,
+  disabled = false,
+  variant = 'default'
+}: ProfileLinkProps) {
+  
+  const getVariantClasses = () => {
+    switch (variant) {
+      case 'danger':
+        return 'bg-destructive/10 border-destructive/20'
+      case 'warning':
+        return 'bg-orange-500/10 border-orange-500/20'
+      default:
+        return 'bg-card border-border'
     }
+  }
 
-    const getVariantStyles = () => {
-        switch (variant) {
-            case 'danger':
-                return {
-                    textColor: '#DC2626',
-                    iconColor: '#DC2626',
-                    bgColor: '#FEF2F2',
-                    darkBgColor: '#7F1D1D',
-                    borderColor: '#FECACA',
-                    darkBorderColor: '#991B1B'
-                };
-            case 'warning':
+  const getTextColor = () => {
+    switch (variant) {
+      case 'danger':
+        return 'text-destructive'
+      case 'warning':
+        return 'text-orange-500'
+      default:
+        return 'text-foreground'
+    }
+  }
+
+  return (
+    <Pressable 
+      onPress={onPress}
+      disabled={disabled}
+      className={`flex-row items-center justify-between p-4 rounded-lg mb-3 active:opacity-70 ${getVariantClasses()} ${
+        disabled ? 'opacity-50' : ''
+      }`}
+    >
+      <View className='flex-row items-center flex-1 gap-3'>
+        {icon && (
+          <View className='w-8 h-8 items-center justify-center'>
+            {icon}
+          </View>
+        )}
+        <View className='flex-1'>
+          <Text className={`font-medium ${getTextColor()}`}>
+            {label}
+          </Text>
+          {description && (
+            <Text className='text-xs text-muted-foreground mt-0.5'>
+              {description}
+            </Text>
+          )}
+        </View>
+      </View>
+      
+      {!disabled && (
+        <ChevronRight size={18} className='text-muted-foreground' />
+      )}
+    </Pressable>
+  )
+}
                 return {
                     textColor: '#D97706',
                     iconColor: '#D97706',

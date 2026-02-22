@@ -31,7 +31,7 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
   const { services } = useHabitBloom();
 
   return (
-    <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200">
+    <View className="absolute bottom-0 left-0 right-0 bg-background border-t border-border">
       {/* Tabs Container */}
       <View className="flex-row items-center justify-around px-2 py-2">
         {state.routes.map((route, index) => {
@@ -74,7 +74,7 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
       </View>
 
       {/* Safe Area Bottom Padding */}
-      {Platform.OS === 'ios' && <View className="h-6 bg-white" />}
+      {Platform.OS === 'ios' && <View className="h-6 bg-background" />}
     </View>
   );
 }
@@ -126,31 +126,32 @@ function TabBarItem({ label, routeName, isFocused, onPress, onLongPress }: TabBa
       {/* Icon Container with Background */}
       <View className={`items-center justify-center ${isFocused ? 'mb-1' : 'mb-0.5'}`}>
         {isFocused && (
-          <View className="absolute w-16 h-10 bg-primary/10 rounded-2xl" />
+          <View className="absolute w-16 h-12 bg-primary/10 rounded-2xl" />
         )}
         <Animated.View style={animatedIconStyle}>
           <Ionicons
             name={iconName as any}
             size={24}
-            color={isFocused ? '#8B7FFF' : '#9CA3AF'}
+            color={isFocused ? 'hsl(165, 75%, 45%)' : 'hsl(215, 15%, 50%)'}
+            // Uses primary color when focused, muted-foreground when not
           />
         </Animated.View>
       </View>
 
       {/* Label */}
-      <Animated.Text
+      {/* <Animated.Text
         style={animatedLabelStyle}
         className={`text-xs font-semibold ${
-          isFocused ? 'text-primary' : 'text-gray-500'
+          isFocused ? 'text-primary' : 'text-muted-foreground'
         }`}
       >
         {label}
-      </Animated.Text>
+      </Animated.Text> */}
 
       {/* Active Indicator Dot */}
-      {isFocused && (
+      {/* {isFocused && (
         <View className="absolute bottom-0 w-1 h-1 bg-primary rounded-full" />
-      )}
+      )} */}
     </TouchableOpacity>
   );
 }
@@ -160,7 +161,7 @@ export function MinimalTabBar({ state, descriptors, navigation }: BottomTabBarPr
   const { services } = useHabitBloom();
 
   return (
-    <View className="absolute bottom-6 left-4 right-4 bg-white/95 backdrop-blur-xl rounded-3xl border border-gray-200 shadow-lg">
+    <View className="absolute bottom-6 left-4 right-4 bg-card/95 backdrop-blur-xl rounded-3xl border border-border shadow-lg">
       <View className="flex-row items-center justify-around px-4 py-3">
         {state.routes.map((route, index) => {
           const isFocused = state.index === index;
@@ -189,7 +190,7 @@ export function MinimalTabBar({ state, descriptors, navigation }: BottomTabBarPr
               <Ionicons
                 name={iconName as any}
                 size={26}
-                color={isFocused ? '#8B7FFF' : '#9CA3AF'}
+                color={isFocused ? 'hsl(165, 75%, 45%)' : 'hsl(215, 15%, 50%)'}
               />
             </TouchableOpacity>
           );
@@ -205,7 +206,7 @@ export function FloatingActionTabBar({ state, descriptors, navigation }: BottomT
 
   return (
     <View className="absolute bottom-6 left-0 right-0 items-center">
-      <View className="bg-white/95 backdrop-blur-xl rounded-full px-6 py-3 border border-gray-200 shadow-2xl flex-row items-center space-x-4">
+      <View className="bg-card/95 backdrop-blur-xl rounded-full px-6 py-3 border border-border shadow-2xl flex-row items-center space-x-4">
         {state.routes.map((route, index) => {
           if (route.name === 'habits') {
             // Center FAB
@@ -241,7 +242,7 @@ export function FloatingActionTabBar({ state, descriptors, navigation }: BottomT
               <Ionicons
                 name={iconName as any}
                 size={24}
-                color={isFocused ? '#8B7FFF' : '#9CA3AF'}
+                color={isFocused ? 'hsl(165, 75%, 45%)' : 'hsl(215, 15%, 50%)'}
               />
             </TouchableOpacity>
           );

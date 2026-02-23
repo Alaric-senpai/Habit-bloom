@@ -1,3 +1,4 @@
+// tailwind.config.js
 const { hairlineWidth } = require('nativewind/theme');
 
 /** @type {import('tailwindcss').Config} */
@@ -49,11 +50,19 @@ module.exports = {
           DEFAULT: 'hsl(var(--warning))',
           foreground: 'hsl(var(--warning-foreground))',
         },
-        // Gamification colors
-        streak: 'hsl(var(--streak-fire))',
-        xp: 'hsl(var(--xp-gold))',
-        level: 'hsl(var(--level-purple))',
-        achievement: 'hsl(var(--achievement-blue))',
+        // Habit Bloom Brand Colors
+        bloom: {
+          cyan: 'hsl(var(--bloom-cyan))',
+          teal: 'hsl(var(--bloom-teal))',
+          dark: 'hsl(var(--bloom-dark))',
+          card: 'hsl(var(--bloom-card))',
+        },
+        // Gradient color stops (use with bg-gradient-to-*)
+        'gradient-start': '#0D1B1E',
+        'gradient-mid': '#122A2E',
+        'gradient-end': '#1A3D42',
+        'cyan-start': '#00D4C8',
+        'cyan-end': '#00E5D4',
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -62,6 +71,14 @@ module.exports = {
       },
       borderWidth: {
         hairline: hairlineWidth(),
+      },
+      backgroundImage: {
+        // Predefined gradients matching the design
+        'bloom-dark': 'linear-gradient(180deg, #0D1B1E 0%, #122A2E 50%, #1A3D42 100%)',
+        'bloom-radial': 'radial-gradient(ellipse at center, #1A3D42 0%, #0D1B1E 100%)',
+        'bloom-cyan': 'linear-gradient(135deg, #00D4C8 0%, #00E5D4 100%)',
+        'bloom-card': 'linear-gradient(180deg, #162D31 0%, #1E3D42 100%)',
+        'bloom-water': 'linear-gradient(180deg, #00B8A9 0%, #00D4C8 50%, #00F0E0 100%)',
       },
       keyframes: {
         'accordion-down': {
@@ -72,10 +89,15 @@ module.exports = {
           from: { height: 'var(--radix-accordion-content-height)' },
           to: { height: '0' },
         },
+        'pulse-cyan': {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.7' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'pulse-cyan': 'pulse-cyan 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
     },
   },

@@ -15,6 +15,9 @@ import { Logo } from '@/constants/images';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 
+import { vexo } from 'vexo-analytics'; 
+vexo('ad8ad4c9-4261-47f0-b661-e0cc06254fde')
+
 export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary,

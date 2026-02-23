@@ -2,14 +2,13 @@ import { View } from 'react-native';
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { CustomTabBar, MinimalTabBar } from '@/components/CustomTabBar';
-import { useActions } from '@/contexts/HabitBloomGlobalContext';
 
 export default function TabbedLayout() {
 
 
   return (
     <Tabs
-      tabBar={(props) => <CustomTabBar {...props} />}
+      tabBar={(props) => <MinimalTabBar {...props} />}
       screenOptions={{
         headerShown: false,
       }}

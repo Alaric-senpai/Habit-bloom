@@ -37,7 +37,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     // Adaptive icon with dark teal background
     adaptiveIcon: {
       foregroundImage: './assets/images/leaf-logo.png',
-    //   backgroundColor: '#0D1B1E', // Dark teal matching theme
+      backgroundColor: '#0D1B1E', // Dark teal matching theme
     },
     
     permissions: [

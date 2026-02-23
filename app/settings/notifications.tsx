@@ -1,18 +1,12 @@
-import { View, Text } from 'react-native';
-import React from 'react';
-import { Container } from '@/components/Container';
+import { View, Text } from 'react-native'
+import React from 'react'
 
-export default function NotificationsSettings() {
+const NotificationsScreen = () => {
   return (
-    <Container>
-      <View className="flex-1 p-6">
-        <Text className="text-2xl font-bold text-foreground mb-4">
-          Notification Settings
-        </Text>
-        <Text className="text-muted-foreground">
-          Notification settings coming soon...
-        </Text>
-      </View>
-    </Container>
-  );
+    <View>
+      <Text>NotificationsScreen</Text>
+    </View>
+  )
 }
+
+export default NotificationsScreen

@@ -1,4 +1,3 @@
-import { HabitBloomProvider, useAuth, useHabitBloom } from '@/contexts/HabitBloomGlobalContext';
 import '@/global.css';
 
 import { NAV_THEME } from '@/lib/theme';
@@ -8,15 +7,21 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'nativewind';
 import { useEffect } from 'react';
-import { ActivityIndicator, View } from 'react-native';
-import { initializeDatabase } from '@/database/db';
+import { ActivityIndicator, Platform, View } from 'react-native';
 import { Image } from 'expo-image';
 import { Logo } from '@/constants/images';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { HabitBloomContextProvider, useHabitBloom } from '@/contexts/HabitBloomGlobalContext';
+
+import * as NavigationBar from 'expo-navigation-bar'
 
 import { vexo } from 'vexo-analytics'; 
-vexo('ad8ad4c9-4261-47f0-b661-e0cc06254fde')
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+
+if(!__DEV__){
+  vexo('ad8ad4c9-4261-47f0-b661-e0cc06254fde')
+}
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -28,44 +33,33 @@ export default function RootLayout() {
 
 
 
-  console.log('Active color scheme', colorScheme)
+
   useEffect(() => {
-    const RunMigrations = async () => {
-      try {
-        await initializeDatabase();
-        console.log('Database initialized successfully');
-      } catch (error) {
-        console.error('Error when initializing the database', error);
+    const hideSystemNavigation = async () => {
+      if (Platform.OS === 'android') {
+        await NavigationBar.setPositionAsync('absolute');
+        await NavigationBar.setBackgroundColorAsync('transparent');
+        await NavigationBar.setVisibilityAsync('hidden');
       }
     };
 
-    RunMigrations();
+    hideSystemNavigation();
   }, []);
 
-  // useEffect(() => {
-  //   const hideSystemNavigation = async () => {
-  //     if (Platform.OS === 'android') {
-  //       await NavigationBar.setPositionAsync('absolute');
-  //       await NavigationBar.setBackgroundColorAsync('transparent');
-  //       await NavigationBar.setVisibilityAsync('hidden');
-  //     }
-  //   };
-
-  //   hideSystemNavigation();
-  // }, []);
-
   return (
+    
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <BottomSheetModalProvider>
-        <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
-          <HabitBloomProvider>
-            <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-            <Routes />
-            <PortalHost />
-          </HabitBloomProvider>
-        </ThemeProvider>
-
-      </BottomSheetModalProvider>
+      <SafeAreaProvider style={{flex: 1}}>
+        <BottomSheetModalProvider>
+          <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
+              <HabitBloomContextProvider>
+                  <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+                  <Routes />
+                  <PortalHost />
+              </HabitBloomContextProvider>
+          </ThemeProvider>
+        </BottomSheetModalProvider>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }
@@ -74,24 +68,13 @@ export default function RootLayout() {
 // Protected Routes Component
 // ============================================================================
 function Routes() {
-  const {auth} = useAuth()
-  const {isInitializing} = useHabitBloom()
+  const {isLoading} = useHabitBloom()
   const segments = useSegments()
   const router = useRouter()
 
-  // Log current route whenever segments change
-  useEffect(() => {
-    const currentRoute = segments.length > 0 ? `/${segments.join('/')}` : '/';
-    console.log('Current route:', currentRoute);
-  }, [segments]);
+  const isAuthenticated = true
 
-  console.log('Current auth state', auth)
-
-  console.log('initalization state', isInitializing)
-
-  const isAuthenticated = auth.isAuthenticated
-
-  if(isInitializing){
+  if(isLoading){
     return (
     <View className="flex-1 justify-between items-center py-16 bg-white">
       <Image

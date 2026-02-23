@@ -1,30 +1,20 @@
-import React, { useCallback } from "react";
-import { Text, View, StyleSheet, ViewStyle, StyleProp } from "react-native";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  interpolate,
-  Extrapolation,
-} from "react-native-reanimated";
-import {
-  runOnJS,
-} from 'react-native-worklets'
+import React, { useRef, useState, useCallback } from "react";
+import { View, Text, PanResponder } from "react-native";
+import { MotiView } from "moti";
+
 type Props = {
   children: React.ReactNode;
   isSwipable?: boolean;
   swipeLeftText?: string;
   swipeRightText?: string;
-  swipeLeftAction?: (data?: any) => Promise<any> | void;
-  swipeRightAction?: (data?: any) => Promise<any> | void;
+  swipeLeftAction?: () => Promise<any> | void;
+  swipeRightAction?: () => Promise<any> | void;
   leftBg?: string;
   rightBg?: string;
-  styles?: StyleProp<ViewStyle>;
-  className?: string;
   threshold?: number;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
+  className?: string;
 };
 
 export default function SwippableView({
@@ -36,197 +26,96 @@ export default function SwippableView({
   swipeRightAction,
   leftBg = "#ef4444",
   rightBg = "#22c55e",
-  styles: customStyles,
   threshold = 80,
   leftIcon,
   rightIcon,
+  className,
 }: Props) {
-  const translateX = useSharedValue(0);
-  const gestureInProgress = useSharedValue(false);
+  const [translateX, setTranslateX] = useState(0);
 
-  const handleLeftAction = useCallback(() => {
-    if (swipeLeftAction) {
+  const handleRelease = useCallback(() => {
+    if (translateX > threshold && swipeRightAction) {
+      swipeRightAction();
+    } else if (translateX < -threshold && swipeLeftAction) {
       swipeLeftAction();
     }
-  }, [swipeLeftAction]);
 
-  const handleRightAction = useCallback(() => {
-    if (swipeRightAction) {
-      swipeRightAction();
-    }
-  }, [swipeRightAction]);
+    setTranslateX(0);
+  }, [translateX, threshold, swipeLeftAction, swipeRightAction]);
 
-  const onGesture = Gesture.Pan()
-    .onStart(() => {
-      gestureInProgress.value = true;
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, gestureState) =>
+        isSwipable && Math.abs(gestureState.dx) > 5,
+
+      onPanResponderMove: (_, gestureState) => {
+        if (!isSwipable) return;
+        setTranslateX(gestureState.dx);
+      },
+
+      onPanResponderRelease: handleRelease,
+      onPanResponderTerminate: handleRelease,
     })
-    .onUpdate((event) => {
-      if (!isSwipable) return;
-      translateX.value = event.translationX;
-    })
-    .onEnd(() => {
-      gestureInProgress.value = false;
-      
-      if (translateX.value > threshold && swipeRightAction) {
-        runOnJS(handleRightAction)();
-      } else if (translateX.value < -threshold && swipeLeftAction) {
-        runOnJS(handleLeftAction)();
-      }
-      
-      translateX.value = withSpring(0, {
-        damping: 15,
-        stiffness: 150,
-      });
-    })
-    .activeOffsetX([-10, 10]);
+  ).current;
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-  }));
-//   calculated width and opcaity when you swipe right and left 
-
-  const leftActionStyle = useAnimatedStyle(() => {
-    const width = interpolate(
-      translateX.value,
-      [0, threshold * 2],
-      [0, threshold * 2],
-      Extrapolation.EXTEND
-    );
-    
-    const opacity = interpolate(
-      translateX.value,
-      [0, threshold / 2, threshold],
-      [0, 0.5, 1],
-      Extrapolation.EXTEND
-    );
-
-    return {
-      opacity,
-      width,
-    };
-  });   
-
-  const rightActionStyle = useAnimatedStyle(() => {
-    const absTranslateX = Math.abs(translateX.value);
-    const width = interpolate(
-      absTranslateX,
-      [0, threshold * 2],
-      [0, threshold * 2],
-      Extrapolation.EXTEND
-    );
-    
-    const opacity = interpolate(
-      absTranslateX,
-      [0, threshold / 2, threshold],
-      [0, 0.5, 1],
-      Extrapolation.CLAMP
-    );
-
-    return {
-      opacity: translateX.value < 0 ? opacity : 0,
-      width: translateX.value < 0 ? width : 0,
-    };
-  });
-
-  const leftActionContentStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(
-      translateX.value,
-      [threshold / 2, threshold],
-      [0, 1],
-      Extrapolation.EXTEND
-    ),
-  }));
-
-  const rightActionContentStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(
-      Math.abs(translateX.value),
-      [threshold / 2, threshold],
-      [0, 1],
-      Extrapolation.IDENTITY
-    ),
-  }));
+  const rightWidth = Math.max(0, translateX);
+  const leftWidth = Math.max(0, -translateX);
 
   return (
-    <View style={[styles.container, customStyles]}>
-      {/* Right action (Complete) */}
+    <View className={`relative overflow-hidden ${className || ""}`}>
+      {/* Swipe Right Action (Complete) */}
       {swipeRightAction && (
-        <Animated.View
-          style={[
-            styles.leftAction,
-            { backgroundColor: rightBg },
-            leftActionStyle,
-          ]}
+        <MotiView
+          animate={{
+            width: rightWidth,
+            opacity: rightWidth > threshold / 2 ? 1 : 0.5,
+          }}
+          transition={{ type: "timing", duration: 150 }}
+          style={{ backgroundColor: rightBg }}
+          className="absolute left-0 top-0 bottom-0 justify-center items-center pl-5"
         >
-          <Animated.View style={[styles.actionContent, leftActionContentStyle]}>
+          <View className="items-center justify-center">
             {rightIcon}
-            <Text style={styles.actionText}>{swipeRightText}</Text>
-          </Animated.View>
-        </Animated.View>
+            <Text className="text-white font-bold text-xs mt-1 text-center">
+              {swipeRightText}
+            </Text>
+          </View>
+        </MotiView>
       )}
 
-      {/* Left action (Delete) */}
+      {/* Swipe Left Action (Delete) */}
       {swipeLeftAction && (
-        <Animated.View
-          style={[
-            styles.rightAction,
-            { backgroundColor: leftBg },
-            rightActionStyle,
-          ]}
+        <MotiView
+          animate={{
+            width: leftWidth,
+            opacity: leftWidth > threshold / 2 ? 1 : 0.5,
+          }}
+          transition={{ type: "timing", duration: 150 }}
+          style={{ backgroundColor: leftBg }}
+          className="absolute right-0 top-0 bottom-0 justify-center items-center pr-5"
         >
-          <Animated.View style={[styles.actionContent, rightActionContentStyle]}>
+          <View className="items-center justify-center">
             {leftIcon}
-            <Text style={styles.actionText}>{swipeLeftText}</Text>
-          </Animated.View>
-        </Animated.View>
+            <Text className="text-white font-bold text-xs mt-1 text-center">
+              {swipeLeftText}
+            </Text>
+          </View>
+        </MotiView>
       )}
 
-      <GestureDetector gesture={onGesture}>
-        <Animated.View style={[styles.childContainer, animatedStyle]}>
-          {children}
-        </Animated.View>
-      </GestureDetector>
+      {/* Main Content */}
+      <MotiView
+        animate={{ translateX }}
+        transition={{
+          type: "spring",
+          damping: 15,
+          stiffness: 150,
+        }}
+        className="z-10"
+        {...panResponder.panHandlers}
+      >
+        {children}
+      </MotiView>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    position: "relative",
-    overflow: "hidden",
-  },
-  childContainer: {
-    zIndex: 2,
-  },
-  leftAction: {
-    position: "absolute",
-    left: 0,
-    top: 0,
-    bottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingLeft: 20,
-    zIndex: 1,
-  },
-  rightAction: {
-    position: "absolute",
-    right: 0,
-    top: 0,
-    bottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingRight: 20,
-    zIndex: 1,
-  },
-  actionContent: {
-    alignItems: "center",
-    justifyContent: "center",
-    flexDirection: "column",
-  },
-  actionText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 12,
-    marginTop: 4,
-    textAlign: "center",
-  },
-});

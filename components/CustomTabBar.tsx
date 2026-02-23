@@ -1,7 +1,6 @@
 import { View, Text, TouchableOpacity, Platform } from 'react-native';
 import React from 'react';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { useHabitBloom } from '@/contexts/HabitBloomGlobalContext';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
   useAnimatedStyle,
@@ -28,7 +27,6 @@ const TAB_LABELS: Record<string, string> = {
 };
 
 export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
-  const { services } = useHabitBloom();
 
   return (
     <View className="absolute bottom-0 left-0 right-0 bg-background border-t border-border">
@@ -47,13 +45,11 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
             });
 
             if (!isFocused && !event.defaultPrevented) {
-              services.haptic.impact('light');
               navigation.navigate(route.name, route.params);
             }
           };
 
           const onLongPress = () => {
-            services.haptic.impact('medium');
             navigation.emit({
               type: 'tabLongPress',
               target: route.key,
@@ -158,7 +154,6 @@ function TabBarItem({ label, routeName, isFocused, onPress, onLongPress }: TabBa
 
 // Alternative: Minimal Tab Bar
 export function MinimalTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
-  const { services } = useHabitBloom();
 
   return (
     <View className="absolute bottom-6 left-4 right-4 bg-card/95 backdrop-blur-xl rounded-3xl border border-border shadow-lg">
@@ -174,11 +169,9 @@ export function MinimalTabBar({ state, descriptors, navigation }: BottomTabBarPr
               target: route.key,
               canPreventDefault: true,
             });
+            navigation.navigate(route.name, route.params);
 
-            if (!isFocused && !event.defaultPrevented) {
-              services.haptic.impact('light');
-              navigation.navigate(route.name, route.params);
-            }
+            
           };
 
           return (
@@ -202,7 +195,6 @@ export function MinimalTabBar({ state, descriptors, navigation }: BottomTabBarPr
 
 // Alternative: Floating Action Tab Bar
 export function FloatingActionTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
-  const { services } = useHabitBloom();
 
   return (
     <View className="absolute bottom-6 left-0 right-0 items-center">
@@ -214,7 +206,6 @@ export function FloatingActionTabBar({ state, descriptors, navigation }: BottomT
               <TouchableOpacity
                 key={route.key}
                 onPress={() => {
-                  services.haptic.impact('medium');
                   navigation.navigate(route.name);
                 }}
                 className="w-14 h-14 bg-primary rounded-full items-center justify-center -my-2 shadow-lg"
@@ -233,7 +224,6 @@ export function FloatingActionTabBar({ state, descriptors, navigation }: BottomT
               key={route.key}
               onPress={() => {
                 if (!isFocused) {
-                  services.haptic.impact('light');
                   navigation.navigate(route.name);
                 }
               }}

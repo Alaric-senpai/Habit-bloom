@@ -52,12 +52,12 @@ export default DateMapper
 const CenteredDateComponent = ({label, isToday, date}:centeredDate)=>{
     return (
         <View className='w-1/5 items-center justify-center flex-col gap-1'>
-            <Text className={cn(isToday ? 'text-primary': 'text-secondary', 'font-semibold text-center')}>
+            <Text variant={'small'} className={cn(isToday ? 'text-primary': 'text-secondary', 'font-semibold text-center')}>
                 {label.toUpperCase()}
             </Text>
             <View style={{
-                width: 60,
-                height: 60,
+                width: 45,
+                height: 45,
                 overflow: 'hidden',
                 borderRadius: 999,
                 alignItems: 'center',

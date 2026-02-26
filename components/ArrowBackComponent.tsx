@@ -3,6 +3,7 @@ import React from 'react'
 import { useRouter } from 'expo-router'
 import { Icon } from './ui/icon'
 import { ArrowLeft } from 'lucide-react-native'
+import { Button } from './ui/button'
 
 export default function ArrowBackComponent() {
     const router =useRouter()
@@ -15,8 +16,10 @@ export default function ArrowBackComponent() {
         }
     }
   return (
-        <Pressable className='m-2' onPress={handlePress}>
-            <Icon as={ArrowLeft} className='dark:text-white size-8 mb-2' />
-        </Pressable>
+        <Button variant={'link'} className='m-2 w-10 h-10 items-center flex-col p-2 justify-center rounded-full overflow-hidden bg-card/85 ' onPress={handlePress}
+
+        >
+            <Icon as={ArrowLeft} className='dark:text-white size-8' />
+        </Button>
   )
 }

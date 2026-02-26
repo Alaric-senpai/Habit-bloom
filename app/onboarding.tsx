@@ -9,6 +9,7 @@ import Container from '@/components/Container';
 import { THEME } from '@/lib/theme';
 import { Logo, Onboarding1, Onboarding1a, Onboarding3, Onboarding4 } from '@/constants/images';
 import GoogleButton from '@/components/GoogleButton';
+import { LeafLogo } from '@/components/Logo';
 
 const { width } = Dimensions.get('window');
 
@@ -60,7 +61,8 @@ const Onboarding = () => {
       <View className="flex-row items-center justify-between px-6 pt-6">
         <View className="flex-row items-center gap-3">
           <View className="h-10 w-10 items-center justify-center rounded-full bg-[#1A2C2C] border border-white/10 overflow-hidden">
-            <Image source={Logo} style={{ width: '100%', height: '100%' }} contentFit="contain" />
+            {/* <Image source={Logo} style={{ width: '100%', height: '100%' }} contentFit="contain" /> */}
+            <LeafLogo />
           </View>
           <Text className="text-xl font-bold text-white tracking-tight">Habit Bloom</Text>
         </View>

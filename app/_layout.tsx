@@ -68,11 +68,11 @@ export default function RootLayout() {
 // Protected Routes Component
 // ============================================================================
 function Routes() {
-  const {isLoading} = useHabitBloom()
+  const {isLoading, isAuthenticated} = useHabitBloom()
   const segments = useSegments()
   const router = useRouter()
 
-  const isAuthenticated = true
+  // const isAuthenticated = true
 
   if(isLoading){
     return (
@@ -101,6 +101,9 @@ function Routes() {
       <Stack.Protected guard={isAuthenticated}>
         <Stack.Screen name="(tabs)" options={{headerShown: false}} />
         <Stack.Screen name="habits/[id]" options={{headerShown: false}} />
+        <Stack.Screen  name='create-habit' options={{
+          headerShown: false
+        }} />
       </Stack.Protected>
 
 

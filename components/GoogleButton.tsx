@@ -14,39 +14,50 @@ const GoogleButton = () => {
     
     const [isLoading, setIsLoading] = React.useState(false);
     
-    const handleGoogleSignIn = async () => {
-        setIsLoading(true);
-        try {
-        GoogleSignin.configure()
+const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    try {
+
+      // pre configure
+
+        GoogleSignin.configure({
+          webClientId: '681908254289-v40fsir21ng0774phggd3ohnp6pmt3tf.apps.googleusercontent.com',
+          offlineAccess: true
+        })
+
+
+        // 1. Ensure services are available
         await GoogleSignin.hasPlayServices();
-        const userInfo = await GoogleSignin.signIn();
+        
+        // 2. Sign in
+        const response = await GoogleSignin.signIn();
 
-        if(isSuccessResponse(userInfo)){
-            const idToken = userInfo.data.idToken;
-            if (!idToken) {
-                console.error("No ID token present!");
-                return;
-            }
-            const res = await db.auth.signInWithIdToken({
-              clientName: "google-android",
-              idToken,
-            });
-            
-            console.log("Logged in!", res);
+        // 3. Extract the ID Token correctly
+        // In newer versions, it's response.data.idToken
+        const idToken = response.data?.idToken;
 
-        }else{
-            console.log('user res', userInfo)
-            return
+        if (!idToken) {
+            throw new Error("No ID token present!");
         }
 
+        // 4. Authenticate with your DB (Supabase/Custom)
+        const res = await db.auth.signInWithIdToken({
+          clientName: "google-android",
+          idToken,
+        });
+        
+        console.log("Logged in!", res);
 
-
-    } catch (error) {
-      console.log("Error signing in", error);
+    } catch (error: any) {
+      if (error.code === 'OTW_STATUS_CODES.SIGN_IN_CANCELLED') {
+          console.log("User cancelled the login");
+      } else {
+          console.error("Sign in error:", error);
+      }
     } finally {
       setIsLoading(false);
     }
-  };
+};
 
   return (
     <Pressable 
@@ -69,15 +80,9 @@ const GoogleButton = () => {
           <ActivityIndicator color="#2AF5FF" />
         ) : (
           <>
-            {/* <View className="mr-3 h-6 w-6 items-center justify-center bg-white rounded-full"> */}
-               {/* Using a CDN link for the Google G logo for reliability */}
-              {/* <Image 
-                source="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_Color_Icon.svg"
-                style={{ width: 14, height: 14 }}
-              /> */}
+            
             <FontAwesome name={'google'} size={24}  color={isDark ? 'white': 'black'}/>
 
-            {/* </View> */}
             <Text className="text-lg font-semibold text-white">
               Continue with Google
             </Text>

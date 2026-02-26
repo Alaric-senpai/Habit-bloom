@@ -1,7 +1,0 @@
-export * from './achievements.table'
-export * from './habitlogs.table'
-export * from './habits.table'
-export * from './mood.table'
-export * from './notifications.table'
-export * from './user.table'
-export * from './usersetup.table'

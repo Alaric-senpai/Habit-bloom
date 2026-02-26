@@ -1,13 +1,9 @@
-// permissions.ts
 import type { InstantRules } from '@instantdb/react-native';
 
 /**
- * Habit Bloom Permissions
- * 
- * Security model:
- * - Users own their data completely
- * - No public reads except for system achievements
- * - All habit, mood, and profile data is private
+ * Habit Bloom Fixed Permissions
+ * * Fix: Use direct property checks or defensive logic to prevent
+ * 'ATTRIBUTE_NOT_FOUND' during link/transact operations.
  */
 
 const rules = {
@@ -16,14 +12,13 @@ const rules = {
   $users: {
     allow: {
       view: 'auth.id != null && auth.id == data.id',
-      create: 'false', // REQUIRED by Instant
+      create: 'false', 
       update: 'auth.id != null && auth.id == data.id',
       delete: 'false',
     },
   },
   $files: {
     allow: {
-      // Users can view their own files
       view: 'auth.id != null && data.path.startsWith(auth.id + "/")',
       create: 'auth.id != null && data.path.startsWith(auth.id + "/")',
       update: 'auth.id != null && data.path.startsWith(auth.id + "/")',
@@ -35,7 +30,8 @@ const rules = {
   
   userProfile: {
     bind: {
-      isOwner: 'auth.id != null && auth.id == data.user.id',
+      // Defensive check for the user link
+      isOwner: 'auth.id != null && data.user != null && auth.id == data.user.id',
     },
     allow: {
       view: 'isOwner',
@@ -49,10 +45,12 @@ const rules = {
   
   habit: {
     bind: {
-      isOwner: 'auth.id != null && auth.id == data.owner.id',
+      // Fix: Ensure data.owner exists before accessing .id
+      isOwner: 'auth.id != null && data.owner != null && auth.id == data.owner.id',
     },
     allow: {
       view: 'isOwner',
+      // Allow create if authenticated; link is handled in the same transaction
       create: 'auth.id != null',
       update: 'isOwner',
       delete: 'isOwner',
@@ -61,7 +59,8 @@ const rules = {
 
   habitLog: {
     bind: {
-      isOwner: 'auth.id != null && auth.id == data.habit.owner.id',
+      // Traversal fix: Check habit and habit.owner levels
+      isOwner: 'auth.id != null && data.habit != null && data.habit.owner != null && auth.id == data.habit.owner.id',
     },
     allow: {
       view: 'isOwner',
@@ -73,7 +72,7 @@ const rules = {
 
   habitStats: {
     bind: {
-      isOwner: 'auth.id != null && auth.id == data.habit.owner.id',
+      isOwner: 'auth.id != null && data.habit != null && data.habit.owner != null && auth.id == data.habit.owner.id',
     },
     allow: {
       view: 'isOwner',
@@ -87,7 +86,7 @@ const rules = {
   
   moodLog: {
     bind: {
-      isOwner: 'auth.id != null && auth.id == data.owner.id',
+      isOwner: 'auth.id != null && data.owner != null && auth.id == data.owner.id',
     },
     allow: {
       view: 'isOwner',
@@ -99,7 +98,7 @@ const rules = {
 
   moodStats: {
     bind: {
-      isOwner: 'auth.id != null && auth.id == data.owner.id',
+      isOwner: 'auth.id != null && data.owner != null && auth.id == data.owner.id',
     },
     allow: {
       view: 'isOwner',
@@ -112,10 +111,9 @@ const rules = {
   // ============== ACHIEVEMENTS ==============
   
   achievement: {
-    // System-defined achievements are readable by all, only admins can create
     allow: {
-      view: 'true', // Public read for achievement definitions
-      create: 'false', // Only via admin/migration
+      view: 'true', 
+      create: 'false', 
       update: 'false',
       delete: 'false',
     },
@@ -123,13 +121,13 @@ const rules = {
 
   userAchievement: {
     bind: {
-      isOwner: 'auth.id != null && auth.id == data.user.id',
+      isOwner: 'auth.id != null && data.user != null && auth.id == data.user.id',
     },
     allow: {
       view: 'isOwner',
-      create: 'isOwner', // Created when user unlocks
-      update: 'isOwner', // Mark as viewed
-      delete: 'false', // Keep achievement history
+      create: 'isOwner', 
+      update: 'isOwner', 
+      delete: 'false', 
     },
   },
 
@@ -137,12 +135,12 @@ const rules = {
   
   notification: {
     bind: {
-      isOwner: 'auth.id != null && auth.id == data.user.id',
+      isOwner: 'auth.id != null && data.user != null && auth.id == data.user.id',
     },
     allow: {
       view: 'isOwner',
-      create: 'isOwner', // Created by client scheduler or push webhook
-      update: 'isOwner', // Mark as read/dismissed
+      create: 'isOwner', 
+      update: 'isOwner', 
       delete: 'isOwner',
     },
   },
@@ -151,7 +149,7 @@ const rules = {
   
   dailySnapshot: {
     bind: {
-      isOwner: 'auth.id != null && auth.id == data.user.id',
+      isOwner: 'auth.id != null && data.user != null && auth.id == data.user.id',
     },
     allow: {
       view: 'isOwner',
